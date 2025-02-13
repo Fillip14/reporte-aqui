@@ -1,21 +1,19 @@
 import express from 'express';
 import dotenv from 'dotenv';
+import routes from './routes/routes';
+import {logTimeMiddleware, errorsMiddleware, notFoundMiddleware} from './middlewares/middleware';
 
-// Carrega variáveis de ambiente
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 4000;
 
-// Middleware para parsear JSON
 app.use(express.json());
+app.use(routes)
+app.use(errorsMiddleware)
+app.use(logTimeMiddleware)
+app.use(notFoundMiddleware)
 
-// Rota de exemplo
-app.get('/', (req, res) => {
-  res.send('Backend rodando!');
-});
-
-// Inicia o servidor
 app.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);
 });
