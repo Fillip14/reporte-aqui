@@ -33,20 +33,31 @@ Atualmente em fase de construção.
 
 # Técnologias utilizadas
 
-Infraestrutura:
+## Infraestrutura:
 
 - PostgreSQL
 - File storage...
 - Servers...
 
-Front-end (web e mobile responsive):
+## Front-end (web e mobile responsive):
 
 - React
 - Vite
 - Fetch
 - Typescript
 
-Back-end:
+## Back-end:
 
 - Node.js
 - Express
+
+### Segurança:
+
+-JWT
+-CORS
+-Rate Limit
+-Helmet
+-XSS-CLEAN
+-Bycrypt
+-sanitize-html
+-express-validator
