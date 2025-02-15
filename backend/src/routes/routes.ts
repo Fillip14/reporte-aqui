@@ -1,8 +1,6 @@
 import express from 'express';
-import {
-  registerCompany,
-  registerUser,
-} from '../controllers/registerController';
+import { registerUser } from '../modules/users/controllers/user-controller';
+import { registerCompany } from '../modules/companies/controllers/company-controller';
 
 const router = express.Router();
 
