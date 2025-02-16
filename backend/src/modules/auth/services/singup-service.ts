@@ -3,12 +3,10 @@ import { Client, Company } from '../schemas/signup-schema';
 
 export const signUpService = {
   async register(userData: Client | Company): Promise<string> {
-    const tableType = 'cpf' in userData ? 'users' : 'companies';
+    const existingUser = await userDoesNotExist(userData);
 
-    const existingUser = await userDoesNotExist(userData, tableType);
+    if (existingUser) throw new Error(`Usuário já existe. ${userData.type}`);
 
-    if (existingUser) throw new Error(`Usuário já existe. ${tableType}`);
-
-    return create(userData, tableType);
+    return create(userData);
   },
 };

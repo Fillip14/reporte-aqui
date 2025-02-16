@@ -2,11 +2,10 @@ import { supabase } from '../../../database/supabaseClient';
 import { Company, Client } from '../schemas/signup-schema';
 
 export const userDoesNotExist = async (
-  userData: Client | Company,
-  tableType: string
+  userData: Client | Company
 ): Promise<Client | Company> => {
   const { data, error } = await supabase
-    .from(tableType)
+    .from(userData.type)
     .select('*')
     .eq('email', userData.email)
     .single();
@@ -14,16 +13,15 @@ export const userDoesNotExist = async (
   return data;
 };
 
-export const create = async (
-  userData: Client | Company,
-  tableType: string
-): Promise<string> => {
+export const create = async (userData: Client | Company): Promise<string> => {
+  const { type, ...userDataWithoutType } = userData;
+
   const { data: newUser, error: insertError } = await supabase
-    .from(tableType)
-    .insert([userData])
+    .from(userData.type)
+    .insert([userDataWithoutType])
     .select();
 
-  if (insertError) throw new Error(`Erro ao cadastrar. ${tableType}`);
+  if (insertError) throw new Error(`Erro ao cadastrar. ${userData.type}`);
 
   return newUser[0].name;
 };

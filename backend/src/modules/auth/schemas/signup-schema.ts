@@ -18,6 +18,7 @@ export const clientSchema = baseSchema.extend({
     .string()
     .length(11)
     .regex(/^\d{11}$/),
+  type: z.literal('clients'),
 });
 
 export const companySchema = baseSchema.extend({
@@ -25,6 +26,7 @@ export const companySchema = baseSchema.extend({
     .string()
     .length(14)
     .regex(/^\d{14}$/),
+  type: z.literal('companies'),
 });
 
 export type Client = z.infer<typeof clientSchema>;
