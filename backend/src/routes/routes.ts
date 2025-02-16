@@ -11,6 +11,6 @@ router.get('/ajuda', (req, res) => {
   res.send('Ajuda');
 });
 
-router.post('/register', registerController);
+router.post('/signup', registerController);
 
 export default router;
