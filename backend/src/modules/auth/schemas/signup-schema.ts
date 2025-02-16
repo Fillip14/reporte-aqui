@@ -10,7 +10,14 @@ const baseSchema = z.object({
   street: z.string().min(1),
   number: z.number().min(1),
   zipcode: z.string().regex(/^\d{5}-\d{3}$/),
-  password: z.string().min(6),
+  password: z
+    .string()
+    .min(8, 'A senha deve ter no mínimo 8 caracteres')
+    .regex(/[A-Z]/, 'A senha deve ter pelo menos uma letra maiúscula')
+    .regex(/[a-z]/, 'A senha deve ter pelo menos uma letra minúscula')
+    .regex(/[\W_]/, 'A senha deve ter pelo menos um caractere especial')
+    .regex(/\d/, 'A senha deve ter pelo menos um número'),
+  // [\W_] pega caracteres não alfanuméricos
 });
 
 export const clientSchema = baseSchema.extend({
