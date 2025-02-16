@@ -1,5 +1,5 @@
 import { supabase } from '../../../database/supabaseClient';
-import { Company } from '../../schemas/company-schema';
+import { Company } from '../schemas/company-schema';
 
 export const findByCnpj = async (cnpj: Company['cnpj']): Promise<Company> => {
   const { data, error } = await supabase

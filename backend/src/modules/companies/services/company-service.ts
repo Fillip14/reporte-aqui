@@ -1,5 +1,5 @@
-import { Company } from '../../schemas/company-schema';
-import { create, findByCnpj } from '../models/company-model';
+import { Company } from '../schemas/company-schema';
+import { create, findByCnpj } from '../repositories/company-repository';
 
 const checkCompanyDoesNotExist = async (cnpj: Company['cnpj']) => {
   const existingCompany = await findByCnpj(cnpj);

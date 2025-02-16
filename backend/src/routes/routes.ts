@@ -1,6 +1,5 @@
 import express from 'express';
-import { registerUser } from '../modules/users/controllers/user-controller';
-import { registerCompany } from '../modules/companies/controllers/company-controller';
+import { registerController } from '../modules/auth/controllers/signup-controller';
 
 const router = express.Router();
 
@@ -12,7 +11,6 @@ router.get('/ajuda', (req, res) => {
   res.send('Ajuda');
 });
 
-router.post('/register/user', registerUser);
-router.post('/register/company', registerCompany);
+router.post('/register', registerController);
 
 export default router;

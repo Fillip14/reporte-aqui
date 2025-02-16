@@ -1,7 +1,7 @@
 import express, { Request, Response } from 'express';
 import { companyService } from '../services/company-service';
 import { HttpStatus } from '../../../constants/api.constants';
-import { companySchema } from '../../schemas/company-schema';
+import { companySchema } from '../schemas/company-schema';
 
 export const registerCompany = async (req: Request, res: Response) => {
   try {
