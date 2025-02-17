@@ -1,5 +1,6 @@
 import express from 'express';
-import { registerController } from '../modules/auth/controllers/signup-controller';
+import { registerController } from '../modules/auth/controllers/sign-up.controller';
+import { loginController } from '../modules/auth/controllers/sign-in.controller';
 
 const router = express.Router();
 
@@ -12,5 +13,6 @@ router.get('/ajuda', (req, res) => {
 });
 
 router.post('/signup', registerController);
+router.post('/signin', loginController);
 
 export default router;
