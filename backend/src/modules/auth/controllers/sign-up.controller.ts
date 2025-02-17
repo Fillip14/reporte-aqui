@@ -1,14 +1,11 @@
 import { HttpStatus } from '../../../constants/api.constants';
-import { companySchema, clientSchema } from '../schemas/signup-schema';
-import { signUpService } from '../services/singup-service';
+import { signUpSchema } from '../schemas/sign-up.schema';
+import { signUpService } from '../services/sing-up.service';
 import express, { Request, Response } from 'express';
 
 export const registerController = async (req: Request, res: Response) => {
   try {
-    const userData =
-      req.body.type == 'clients'
-        ? clientSchema.safeParse(req.body)
-        : companySchema.safeParse(req.body);
+    const userData = signUpSchema.safeParse(req.body);
 
     if (!userData.success) {
       res.status(HttpStatus.BAD_REQUEST).json({ error: userData.error });
