@@ -2,7 +2,7 @@ import { HttpStatus } from '../../../constants/api.constants';
 import { signInSchema } from '../schemas/sign-in.schema';
 import { signInService } from '../services/sign-in.service';
 import express, { Request, Response } from 'express';
-import logger from '../../../utils/logger';
+import logger from '../../../utils/log/logger';
 
 export const loginController = async (req: Request, res: Response) => {
   try {

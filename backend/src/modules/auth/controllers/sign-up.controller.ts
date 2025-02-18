@@ -2,7 +2,7 @@ import { HttpStatus } from '../../../constants/api.constants';
 import { signUpSchema } from '../schemas/sign-up.schema';
 import { signUpService } from '../services/sing-up.service';
 import express, { Request, Response } from 'express';
-import logger from '../../../utils/logger';
+import logger from '../../../utils/log/logger';
 
 export const registerController = async (req: Request, res: Response) => {
   try {
