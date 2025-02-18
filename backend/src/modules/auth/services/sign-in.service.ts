@@ -2,7 +2,6 @@ import { findUserByEmail } from '../repositories/auth.repository';
 import { SignIn } from '../schemas/sign-in.schema';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { EXPIRE_TOKEN } from '../../../constants/api.constants';
 
 export const signInService = {
   async login(userData: SignIn) {
@@ -15,7 +14,7 @@ export const signInService = {
       { type: dataFound.type, email: dataFound.email },
       process.env.JWT_SECRET as string,
       {
-        expiresIn: EXPIRE_TOKEN,
+        expiresIn: 5 * 60,
       }
     );
   },

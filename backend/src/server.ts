@@ -1,6 +1,7 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import routes from './routes/routes';
+import logger from './utils/logger';
 const cookieParser = require('cookie-parser');
 
 dotenv.config();
@@ -13,5 +14,5 @@ app.use(cookieParser());
 app.use(routes);
 
 app.listen(PORT, () => {
-  console.log(`Servidor rodando na porta ${PORT}`);
+  logger.info(`Servidor rodando na porta ${PORT}`);
 });

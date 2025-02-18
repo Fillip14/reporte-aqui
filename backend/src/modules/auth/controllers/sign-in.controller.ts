@@ -2,14 +2,15 @@ import { HttpStatus } from '../../../constants/api.constants';
 import { signInSchema } from '../schemas/sign-in.schema';
 import { signInService } from '../services/sign-in.service';
 import express, { Request, Response } from 'express';
-import { EXPIRE_TOKEN } from '../../../constants/api.constants';
+import logger from '../../../utils/logger';
 
 export const loginController = async (req: Request, res: Response) => {
   try {
     const userData = signInSchema.safeParse(req.body);
 
     if (!userData.success) {
-      res.status(HttpStatus.BAD_REQUEST).json({ error: userData.error });
+      logger.error(`Email ou senha incorreto ou faltando. ${userData.error}`);
+      res.status(HttpStatus.BAD_REQUEST).json({ message: 'Email ou senha inválidos.' });
       return;
     }
 
@@ -19,10 +20,13 @@ export const loginController = async (req: Request, res: Response) => {
       httpOnly: true,
       secure: true,
       sameSite: 'strict',
-      maxAge: EXPIRE_TOKEN,
+      maxAge: 5 * 60 * 1000,
     });
+
+    logger.info('Login realizado com sucesso.');
     res.status(HttpStatus.OK).json({ message: 'Login realizado com sucesso.' });
   } catch (error: any) {
-    res.status(HttpStatus.UNAUTHORIZED).json({ error: error.message });
+    logger.error(`${error}`);
+    res.status(HttpStatus.UNAUTHORIZED).json({ message: 'Email ou senha inválidos.' });
   }
 };
