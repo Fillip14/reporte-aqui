@@ -10,12 +10,8 @@ export const signInService = {
     if (!dataFound || !(await bcrypt.compare(userData.password, dataFound.password))) {
       throw new Error('Email ou senha inválidos.');
     }
-    return jwt.sign(
-      { type: dataFound.type, email: dataFound.email },
-      process.env.JWT_SECRET as string,
-      {
-        expiresIn: 5 * 60,
-      }
-    );
+    return jwt.sign({ id: dataFound.id, type: dataFound.type }, process.env.JWT_SECRET as string, {
+      expiresIn: 5 * 60,
+    });
   },
 };

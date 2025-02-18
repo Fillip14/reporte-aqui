@@ -2,8 +2,8 @@ import { supabase } from '../../../database/supabaseClient';
 import { SignIn } from '../schemas/sign-in.schema';
 import { SignUp } from '../schemas/sign-up.schema';
 
-export const findUserByEmail = async (email: string): Promise<SignUp> => {
-  const { data, error } = await supabase.from('users').select('*').eq('email', email).single();
+export const findUserByEmail = async (email: string): Promise<SignIn> => {
+  const { data, error } = await supabase.from('users').select('id, *').eq('email', email).single();
 
   return data;
 };
