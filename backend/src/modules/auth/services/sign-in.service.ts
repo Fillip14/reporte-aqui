@@ -1,23 +1,22 @@
 import { findUserByEmail } from '../repositories/auth.repository';
 import { SignIn } from '../schemas/sign-in.schema';
 import bcrypt from 'bcrypt';
-
-const checkPassword = async (plainPassword: string, hashedPassword: string) => {
-  const isMatch = await bcrypt.compare(plainPassword, hashedPassword);
-  return isMatch;
-};
+import jwt from 'jsonwebtoken';
+import { EXPIRE_TOKEN } from '../../../constants/api.constants';
 
 export const signInService = {
-  async login(userData: SignIn): Promise<void> {
-    const existingUser = await findUserByEmail(userData.email);
+  async login(userData: SignIn) {
+    const dataFound = await findUserByEmail(userData.email);
 
-    if (!existingUser) throw new Error(`Email não encontrado.`);
-
-    const isPasswordCorrect = await checkPassword(
-      userData.password,
-      existingUser.password
+    if (!dataFound || !(await bcrypt.compare(userData.password, dataFound.password))) {
+      throw new Error('Email ou senha inválidos.');
+    }
+    return jwt.sign(
+      { type: dataFound.type, email: dataFound.email },
+      process.env.JWT_SECRET as string,
+      {
+        expiresIn: EXPIRE_TOKEN,
+      }
     );
-
-    console.log(isPasswordCorrect);
   },
 };

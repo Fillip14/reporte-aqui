@@ -6,21 +6,22 @@ Atualmente em fase de construção.
 
 # 🗺️ Em andamento...
 
-| Features                | Done |
-| ----------------------- | ---- |
-| Cadastro usuário        | :x:  |
-| Cadastro empresas       | :x:  |
-| Cadastro problemas      | :x:  |
-| - Titulo/descrição      | :x:  |
-| - Anexo media           | :x:  |
-| Listar problemas        | :x:  |
-| Up/down prioridades     | :x:  |
-| Resolvido/não resolvido | :x:  |
-| Cancelamento do report  | :x:  |
-| Avaliação da resolução  | :x:  |
-| Perfil empresa          | :x:  |
-| -Anexo media            | :x:  |
-| Listar problemas        | :x:  |
+| Features                               | Done               |
+| -------------------------------------- | ------------------ |
+| Cadastro usuários (empresa/individual) | :heavy_check_mark: |
+| Login usuarios (empresa/individual)    | :heavy_check_mark: |
+| Rotas autenticadas                     | :x:                |
+| Cadastro problemas                     | :x:                |
+| - Titulo/descrição                     | :x:                |
+| - Anexo media                          | :x:                |
+| Listar problemas                       | :x:                |
+| Up/down prioridades                    | :x:                |
+| Resolvido/não resolvido                | :x:                |
+| Cancelamento do report                 | :x:                |
+| Avaliação da resolução                 | :x:                |
+| Perfil empresa                         | :x:                |
+| -Anexo media                           | :x:                |
+| Listar problemas                       | :x:                |
 
 # 🗺️ Recursos para o futuro
 
