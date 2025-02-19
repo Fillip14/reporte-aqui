@@ -1,5 +1,5 @@
-import { create, findByEmail } from '../repositories/user-repository';
-import { User } from '../schemas/user-schema';
+import { create, findByEmail } from '../repositories/individual-repository';
+import { User } from '../schemas/individual-schema';
 
 const checkUserDoesNotExist = async (email: User['email']) => {
   const existingUser = await findByEmail(email);

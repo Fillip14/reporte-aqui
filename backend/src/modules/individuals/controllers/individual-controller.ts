@@ -1,7 +1,7 @@
 import { HttpStatus } from '../../../constants/api.constants';
 import { userService } from '../services/user-service';
 import express, { Request, Response } from 'express';
-import { userSchema } from '../schemas/user-schema';
+import { userSchema } from '../schemas/individual-schema';
 
 export const registerUser = async (req: Request, res: Response) => {
   try {

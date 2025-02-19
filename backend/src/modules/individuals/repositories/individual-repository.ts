@@ -1,12 +1,8 @@
 import { supabase } from '../../../database/supabaseClient';
-import { User } from '../schemas/user-schema';
+import { User } from '../schemas/individual-schema';
 
 export const findByEmail = async (email: User['email']): Promise<User> => {
-  const { data, error } = await supabase
-    .from('users')
-    .select('*')
-    .eq('email', email)
-    .single();
+  const { data, error } = await supabase.from('users').select('*').eq('email', email).single();
 
   return data;
 };
