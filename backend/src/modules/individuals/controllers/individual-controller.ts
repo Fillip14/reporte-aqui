@@ -1,5 +1,5 @@
 import { HttpStatus } from '../../../constants/api.constants';
-import { userService } from '../services/user-service';
+import { userService } from '../services/individual-service';
 import express, { Request, Response } from 'express';
 import { userSchema } from '../schemas/individual-schema';
 
