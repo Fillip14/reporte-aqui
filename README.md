@@ -10,6 +10,7 @@ Atualmente em fase de construção.
 | -------------------------------------- | ------------------ |
 | Cadastro usuários (empresa/individual) | :heavy_check_mark: |
 | Login usuarios (empresa/individual)    | :heavy_check_mark: |
+| Logout usuarios (empresa/individual)   | :heavy_check_mark: |
 | Rotas autenticadas                     | :x:                |
 | Cadastro problemas                     | :x:                |
 | - Titulo/descrição                     | :x:                |
