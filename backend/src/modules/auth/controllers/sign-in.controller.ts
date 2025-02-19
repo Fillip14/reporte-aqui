@@ -10,7 +10,7 @@ export const loginController = async (req: Request, res: Response) => {
 
     if (!userData.success) {
       logger.error(`Email ou senha incorreto ou faltando. ${userData.error}`);
-      res.status(HttpStatus.BAD_REQUEST).json({ message: 'Email ou senha inválidos.' });
+      res.status(HttpStatus.UNAUTHORIZED).json({ error: 'Email ou senha inválidos.' });
       return;
     }
 
@@ -27,6 +27,6 @@ export const loginController = async (req: Request, res: Response) => {
     res.status(HttpStatus.OK).json({ message: 'Login realizado com sucesso.' });
   } catch (error: any) {
     logger.error(`${error}`);
-    res.status(HttpStatus.UNAUTHORIZED).json({ message: 'Email ou senha inválidos.' });
+    res.status(HttpStatus.UNAUTHORIZED).json({ error: 'Email ou senha inválidos.' });
   }
 };
