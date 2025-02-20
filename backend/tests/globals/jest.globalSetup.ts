@@ -13,7 +13,7 @@ export default async () => {
       city: 'Criciuma',
       neighborhood: 'Centro',
       street: 'Rua zero',
-      number: 1,
+      number: '1',
       zipcode: '00000-000',
       password: 'asdvadasdA@1',
     });

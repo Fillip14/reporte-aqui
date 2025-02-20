@@ -11,7 +11,7 @@ export const signUpSchema = z
     city: z.string().min(1),
     neighborhood: z.string().min(1),
     street: z.string().min(1),
-    number: z.number().min(1),
+    number: z.string().min(1),
     zipcode: z.string().regex(/^\d{5}-\d{3}$/),
     document: z.string(),
     password: z.string(),
