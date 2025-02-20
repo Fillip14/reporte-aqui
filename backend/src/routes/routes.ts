@@ -7,7 +7,7 @@ router.get('/', (req, res) => {
   res.send('Homepage');
 });
 
-router.get('/teste', authMiddleware('individual'), (req, res) => {
+router.get('/teste', authMiddleware(), (req, res) => {
   res.send('Usuário autorizado');
 });
 
