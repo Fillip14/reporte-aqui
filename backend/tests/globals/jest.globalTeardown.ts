@@ -4,6 +4,7 @@ export default async () => {
   try {
     const emails = [
       'testecompany@teste.com',
+      'testecompany2@teste.com',
       'testeindividual1234@teste.com',
       'testecompany1234@teste.com',
     ];
