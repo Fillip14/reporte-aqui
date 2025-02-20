@@ -1,13 +1,12 @@
 import { HttpStatus } from '../src/constants/api.constants';
 import { app } from '../src/server';
 import request from 'supertest';
-import { faker } from '@faker-js/faker';
 
 describe('Testar signup', () => {
   it('Deve retornar cadastro com sucesso para individual', async () => {
     const response = await request(app).post('/signup').send({
       type: 'individual',
-      email: faker.internet.email(),
+      email: 'testeindividual1234@teste.com',
       name: 'dashidjoa',
       document: '12345680179',
       country: 'Brasil',
@@ -27,7 +26,7 @@ describe('Testar signup', () => {
   it('Deve retornar cadastro com sucesso para company', async () => {
     const response = await request(app).post('/signup').send({
       type: 'company',
-      email: faker.internet.email(),
+      email: 'testecompany1234@teste.com',
       name: 'dashidjoa',
       document: '12345678912123',
       country: 'Brasil',

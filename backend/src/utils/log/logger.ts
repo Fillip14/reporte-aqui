@@ -14,6 +14,7 @@ const logger = winston.createLogger({
   ),
   transports: [
     ...(isTestEnv ? [] : [new winston.transports.Console()]),
+    // new winston.transports.Console(),
     new winston.transports.File({ filename: logPath }),
   ],
 });
