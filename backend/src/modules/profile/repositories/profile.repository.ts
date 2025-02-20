@@ -1,8 +1,7 @@
 import { supabase } from '../../../database/supabaseClient';
-import { UserType } from '../constants/profile.constants';
-import { ProfileUpdate } from '../schemas/profile.schema';
+import { ProfileData, ProfileUpdate } from '../schemas/profile.schema';
 
-export const findUserByID = async (user: { id: string; type: UserType }) => {
+export const findUserByID = async (user: ProfileData) => {
   const { data, error } = await supabase
     .from('users')
     .select(
@@ -14,10 +13,13 @@ export const findUserByID = async (user: { id: string; type: UserType }) => {
 };
 
 export const patchUser = async (user: ProfileUpdate) => {
-  const { data, error } = await supabase
-    .from('users')
-    .update(user) // user.data contém os campos a serem alterados
-    .eq('id', user.id); // Filtra pelo ID do usuário
+  const { data, error } = await supabase.from('users').update(user).eq('id', user.id);
+
+  return { data, error };
+};
+
+export const deleteUser = async (user: ProfileData) => {
+  const { data, error } = await supabase.from('users').delete().eq('id', user.id).single();
 
   return { data, error };
 };
