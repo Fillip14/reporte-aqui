@@ -6,15 +6,26 @@ import logger from '../../../utils/log/logger';
 
 export const registerController = async (req: Request, res: Response) => {
   try {
-    const userData = signUpSchema.safeParse(req.body);
+    const { document, ...userData } = req.body;
 
-    if (!userData.success) {
-      logger.error(`Algum item do cadastro esta incorreto ou faltando. ${userData.error}`);
+    if (!document) res.status(HttpStatus.BAD_REQUEST).json({ error: 'Documento não informado.' });
+
+    await signUpService.isUserRegistered(document);
+
+    if (Object.keys(userData).length === 0) {
+      res.status(HttpStatus.OK).json({});
+      return;
+    }
+
+    const dataToSignUp = signUpSchema.safeParse({ document, ...userData });
+
+    if (!dataToSignUp.success) {
+      logger.error(`Algum item do cadastro esta incorreto ou faltando. ${dataToSignUp.error}`);
       res.status(HttpStatus.BAD_REQUEST).json({ error: 'Informações incorretas ou faltando.' });
       return;
     }
 
-    const userRegistered = await signUpService.register(userData.data);
+    const userRegistered = await signUpService.register(dataToSignUp.data);
 
     logger.info(`Cadastro realizado com sucesso. Usuário: ${userRegistered}`);
     res.status(HttpStatus.CREATED).json({ message: 'Cadastro realizado com sucesso.' });

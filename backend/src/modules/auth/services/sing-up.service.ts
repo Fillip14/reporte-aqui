@@ -1,4 +1,4 @@
-import { findUserByEmail, create } from '../repositories/auth.repository';
+import { findUserByDocument, create, findUserByEmail } from '../repositories/auth.repository';
 import { SignUp } from '../schemas/sign-up.schema';
 import bcrypt from 'bcrypt';
 
@@ -8,8 +8,14 @@ export const signUpService = {
 
     const existingUser = await findUserByEmail(userData.email);
 
-    if (existingUser) throw new Error(`${userData.type} já existe.`);
+    if (existingUser) throw new Error(`Email já cadastrado.`);
 
     return create(userData);
+  },
+
+  async isUserRegistered(document: SignUp['document']) {
+    const existingUser = await findUserByDocument(document);
+
+    if (existingUser) throw new Error(`Usuário já cadastrado.`);
   },
 };

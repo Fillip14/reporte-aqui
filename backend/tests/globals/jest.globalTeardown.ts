@@ -5,6 +5,8 @@ export default async () => {
     const emails = [
       'testecompany@teste.com',
       'testecompany2@teste.com',
+      'testecompany3@teste.com',
+      'testecompany4@teste.com',
       'testeindividual1234@teste.com',
       'testecompany1234@teste.com',
     ];

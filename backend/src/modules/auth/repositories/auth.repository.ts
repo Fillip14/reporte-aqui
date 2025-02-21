@@ -8,6 +8,16 @@ export const findUserByEmail = async (email: string): Promise<SignIn> => {
   return data;
 };
 
+export const findUserByDocument = async (document: SignUp['document']) => {
+  const { data, error } = await supabase
+    .from('users')
+    .select('id, *')
+    .eq('document', document)
+    .single();
+
+  return data;
+};
+
 export const create = async (userData: SignUp): Promise<string> => {
   const { data: newUser, error: insertError } = await supabase
     .from('users')

@@ -64,7 +64,7 @@ describe('Testar edit profile', () => {
       type: 'company',
       email: 'testecompany2@teste.com',
       name: 'Compania teste',
-      document: '12345678912123',
+      document: '22345678912123',
       country: 'Brasil',
       state: 'Santa Catarina',
       city: 'Criciuma',
@@ -93,12 +93,12 @@ describe('Testar edit profile', () => {
     expect(response.text).toContain('');
   });
 
-  it('Deve retornar 400 devido a informações incorretas ou faltando', async () => {
+  it('Deve retornar 400 devido ao ID faltando', async () => {
     await request(app).post('/signup').send({
       type: 'company',
-      email: 'testecompany2@teste.com',
+      email: 'testecompany3@teste.com',
       name: 'Compania teste',
-      document: '12345678912123',
+      document: '32345678912123',
       country: 'Brasil',
       state: 'Santa Catarina',
       city: 'Criciuma',
@@ -111,7 +111,7 @@ describe('Testar edit profile', () => {
     const { data, error } = await supabase
       .from('users')
       .select('id, *')
-      .eq('email', 'testecompany2@teste.com')
+      .eq('document', '32345678912123')
       .single();
 
     const token = jwt.sign({ id: data.id, type: data.type }, process.env.JWT_SECRET as string, {
@@ -127,12 +127,12 @@ describe('Testar edit profile', () => {
     expect(response.body.error).toBe('Informações incorretas ou faltando.');
   });
 
-  it('Deve retornar 400 devido a informações incorretas ou faltando', async () => {
+  it('Deve retornar 400 devido ao ID não existir', async () => {
     await request(app).post('/signup').send({
       type: 'company',
-      email: 'testecompany2@teste.com',
+      email: 'testecompany4@teste.com',
       name: 'Compania teste',
-      document: '12345678912123',
+      document: '32345678912123',
       country: 'Brasil',
       state: 'Santa Catarina',
       city: 'Criciuma',
@@ -145,7 +145,7 @@ describe('Testar edit profile', () => {
     const { data, error } = await supabase
       .from('users')
       .select('id, *')
-      .eq('email', 'testecompany2@teste.com')
+      .eq('document', '32345678912123')
       .single();
 
     const token = jwt.sign({ id: data.id, type: data.type }, process.env.JWT_SECRET as string, {
