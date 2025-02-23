@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { profileSchema, profileUpdateSchema } from '../schemas/profile.schema';
+import { profileDataSchema, profileUpdateSchema } from '../schemas/profile.schema';
 import { HttpStatus } from '../../../constants/api.constants';
 import {
   deleteProfileService,
@@ -11,7 +11,7 @@ import logger from '../../../utils/log/logger';
 export const getProfileController = async (req: Request, res: Response) => {
   try {
     const user = res.locals.user;
-    const userData = profileSchema.safeParse(user);
+    const userData = profileDataSchema.safeParse(user);
 
     if (!userData.success) {
       logger.error(`ID ou Type do usuario faltando. ${userData.error}`);
@@ -31,6 +31,7 @@ export const getProfileController = async (req: Request, res: Response) => {
 
 export const patchProfileController = async (req: Request, res: Response) => {
   try {
+    const user = res.locals.user;
     const userData = profileUpdateSchema.safeParse(req.body);
 
     if (!userData.success) {
@@ -38,9 +39,9 @@ export const patchProfileController = async (req: Request, res: Response) => {
       res.status(HttpStatus.BAD_REQUEST).json({ error: 'Informações incorretas ou faltando.' });
       return;
     }
-    const data = await patchProfileService(userData.data);
+    await patchProfileService(userData.data, user.id);
 
-    logger.info(`Atualizacao realizada com sucesso. ID: ${userData.data.id}`);
+    logger.info(`Atualizacao realizada com sucesso. ID: ${user.id}`);
     res.status(HttpStatus.OK).json({});
   } catch (error: any) {
     logger.error(`${error}`);
@@ -51,16 +52,17 @@ export const patchProfileController = async (req: Request, res: Response) => {
 
 export const deleteProfileController = async (req: Request, res: Response) => {
   try {
-    const userData = profileSchema.safeParse(req.body);
+    const user = res.locals.user;
+    const userData = profileDataSchema.safeParse(user);
 
     if (!userData.success) {
       logger.error(`Dados cadastrais incorretos ou faltando. ${userData.error}`);
       res.status(HttpStatus.BAD_REQUEST).json({ error: 'Informações incorretas ou faltando.' });
       return;
     }
-    const data = await deleteProfileService(userData.data);
+    await deleteProfileService(userData.data);
 
-    logger.info(`Usuário excluido com sucesso. ID: ${userData.data.id}`);
+    logger.info(`Usuário excluido com sucesso. ID: ${user.id}`);
     res.status(HttpStatus.OK).json({});
   } catch (error: any) {
     logger.error(`${error}`);

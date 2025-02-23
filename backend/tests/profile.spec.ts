@@ -7,54 +7,46 @@ import { supabase } from '../src/database/supabaseClient';
 
 describe('Testar edit profile', () => {
   it('Deve retornar 200 OK com os dados cadastrais do usuário', async () => {
-    const { data, token } = await generateToken();
+    const { token } = await generateToken();
 
     const response = await request(app)
       .get('/profile')
       .set('Cookie', [`auth=${token}`]);
-
     expect(response.status).toBe(HttpStatus.OK);
-    expect(response.body.message.email).toBeDefined();
+    expect(response.body.message.authUser.email).toBeDefined();
   });
 
   it('Deve retornar 400 devido a nao existir o id ou type', async () => {
     const token = jwt.sign({ id: '1231234', type: 'company' }, process.env.JWT_SECRET as string, {
       expiresIn: 5 * 60,
     });
-
     const response = await request(app)
       .get('/profile')
       .set('Cookie', [`auth=${token}`]);
-
     expect(response.status).toBe(HttpStatus.BAD_REQUEST);
-    expect(response.body.error).toBe('ID ou Type do usuario faltando ou incorreto.');
+    expect(response.body.error).toBe('Erro ao pesquisar usuário.');
   });
 
   it('Deve retornar 200 OK sem corpo', async () => {
-    const { data, token } = await generateToken();
-    delete data.password;
-    delete data.email;
-
+    const { authUser, dataUser, token } = await generateToken();
+    const data = { ...authUser, ...dataUser };
+    console.log(data);
     const response = await request(app)
       .patch('/profile')
       .set('Cookie', [`auth=${token}`])
       .send(data);
-
     expect(response.status).toBe(HttpStatus.OK);
     expect(response.text).toContain('');
   });
 
   it('Deve retornar 400 devido a informações incorretas ou faltando', async () => {
-    const { data, token } = await generateToken();
-    delete data.password;
-    delete data.email;
-    delete data.id;
-
+    const { authUser, dataUser, token } = await generateToken();
+    delete dataUser.name;
+    const data = { ...authUser, ...dataUser };
     const response = await request(app)
       .patch('/profile')
       .set('Cookie', [`auth=${token}`])
       .send(data);
-
     expect(response.status).toBe(HttpStatus.BAD_REQUEST);
     expect(response.body.error).toBe('Informações incorretas ou faltando.');
   });
@@ -64,7 +56,7 @@ describe('Testar edit profile', () => {
       type: 'company',
       email: 'testecompany2@teste.com',
       name: 'Compania teste',
-      document: '22345678912123',
+      document: '22345678912125',
       country: 'Brasil',
       state: 'Santa Catarina',
       city: 'Criciuma',
@@ -74,57 +66,32 @@ describe('Testar edit profile', () => {
       zipcode: '00000-000',
       password: 'asdvadasdA@1',
     });
-    const { data, error } = await supabase
-      .from('users')
-      .select('id, *')
-      .eq('email', 'testecompany2@teste.com')
+    const { data: authUser, error: authError } = await supabase
+      .from('auth')
+      .select('id, email, document')
+      .eq('document', '22345678912125')
       .single();
 
-    const token = jwt.sign({ id: data.id, type: data.type }, process.env.JWT_SECRET as string, {
-      expiresIn: 5 * 60,
-    });
+    if (authError) throw new Error('Erro ao pesquisar usuário.');
 
+    const { data: dataUser, error: dataError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', authUser.id)
+      .single();
+    const token = jwt.sign(
+      { id: authUser.id, type: dataUser.type },
+      process.env.JWT_SECRET as string,
+      {
+        expiresIn: 5 * 60,
+      }
+    );
     const response = await request(app)
       .delete('/profile')
       .set('Cookie', [`auth=${token}`])
-      .send({ id: data.id, type: data.type });
-
+      .send({ id: authUser.id, type: dataUser.type });
     expect(response.status).toBe(HttpStatus.OK);
     expect(response.text).toContain('');
-  });
-
-  it('Deve retornar 400 devido ao ID faltando', async () => {
-    await request(app).post('/signup').send({
-      type: 'company',
-      email: 'testecompany3@teste.com',
-      name: 'Compania teste',
-      document: '32345678912123',
-      country: 'Brasil',
-      state: 'Santa Catarina',
-      city: 'Criciuma',
-      neighborhood: 'Centro',
-      street: 'Rua zero',
-      number: '1',
-      zipcode: '00000-000',
-      password: 'asdvadasdA@1',
-    });
-    const { data, error } = await supabase
-      .from('users')
-      .select('id, *')
-      .eq('document', '32345678912123')
-      .single();
-
-    const token = jwt.sign({ id: data.id, type: data.type }, process.env.JWT_SECRET as string, {
-      expiresIn: 5 * 60,
-    });
-
-    const response = await request(app)
-      .delete('/profile')
-      .set('Cookie', [`auth=${token}`])
-      .send({ type: data.type });
-
-    expect(response.status).toBe(HttpStatus.BAD_REQUEST);
-    expect(response.body.error).toBe('Informações incorretas ou faltando.');
   });
 
   it('Deve retornar 400 devido ao ID não existir', async () => {
@@ -143,19 +110,16 @@ describe('Testar edit profile', () => {
       password: 'asdvadasdA@1',
     });
     const { data, error } = await supabase
-      .from('users')
+      .from('auth')
       .select('id, *')
       .eq('document', '32345678912123')
       .single();
-
-    const token = jwt.sign({ id: data.id, type: data.type }, process.env.JWT_SECRET as string, {
+    const token = jwt.sign({ id: '1234', type: 'company' }, process.env.JWT_SECRET as string, {
       expiresIn: 5 * 60,
     });
-
     const response = await request(app)
       .delete('/profile')
-      .set('Cookie', [`auth=${token}`])
-      .send({ id: '1234', type: data.type });
+      .set('Cookie', [`auth=${token}`]);
 
     expect(response.status).toBe(HttpStatus.BAD_REQUEST);
     expect(response.body.error).toBe('Erro ao excluir o usuário.');

@@ -10,7 +10,7 @@ export const registerController = async (req: Request, res: Response) => {
 
     if (!document) res.status(HttpStatus.BAD_REQUEST).json({ error: 'Documento não informado.' });
 
-    await signUpService.isUserRegistered(document);
+    await signUpService.findUser(document);
 
     if (Object.keys(userData).length === 0) {
       res.status(HttpStatus.OK).json({});

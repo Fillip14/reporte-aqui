@@ -6,7 +6,7 @@ import { generateToken } from './generateToken';
 
 describe('Testar auth', () => {
   it('Deve retornar "Usuário autorizado" quando o token for válido', async () => {
-    const { data, token } = await generateToken();
+    const { token } = await generateToken();
 
     const response = await request(app)
       .get('/teste')

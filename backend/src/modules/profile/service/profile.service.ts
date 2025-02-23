@@ -2,19 +2,13 @@ import { findUserByID, patchUser, deleteUser } from '../repositories/profile.rep
 import { ProfileData, ProfileUpdate } from '../schemas/profile.schema';
 
 export const getProfileService = async (userData: ProfileData) => {
-  const data = await findUserByID(userData);
-  if (!data) throw new Error('ID ou Type do usuario faltando ou incorreto.');
-  return data;
+  return await findUserByID(userData);
 };
 
-export const patchProfileService = async (userData: ProfileUpdate) => {
-  const { data, error } = await patchUser(userData);
-  if (error) throw new Error('Erro ao atualizar usuário.');
-  return data;
+export const patchProfileService = async (userData: ProfileUpdate, userId: string) => {
+  return await patchUser(userData, userId);
 };
 
 export const deleteProfileService = async (userData: ProfileData) => {
-  const { data, error } = await deleteUser(userData);
-  if (error) throw new Error('Erro ao excluir o usuário.');
-  return data;
+  return await deleteUser(userData);
 };

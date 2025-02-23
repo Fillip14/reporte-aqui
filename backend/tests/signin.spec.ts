@@ -5,8 +5,6 @@ import request from 'supertest';
 describe('Testar signin', () => {
   it('Deve retornar login com sucesso para company', async () => {
     const response = await request(app).post('/signin').send({
-      id: '12',
-      type: 'company',
       email: 'testecompany@teste.com',
       password: 'asdvadasdA@1',
     });
@@ -17,8 +15,6 @@ describe('Testar signin', () => {
 
   it('Deve retornar email ou senha incorreto ou faltando por falta de senha', async () => {
     const response = await request(app).post('/signin').send({
-      id: '12',
-      type: 'company',
       email: 'testecompany@teste.com',
       // password: 'asdvadasdA@1',
     });
@@ -28,8 +24,6 @@ describe('Testar signin', () => {
 
   it('Deve retornar email ou senha incorreto ou faltando por email nao existente', async () => {
     const response = await request(app).post('/signin').send({
-      id: '12',
-      type: 'company',
       email: 'naoexiste@naoexiste.com',
       password: 'asdvadasdA@1',
     });
@@ -40,8 +34,6 @@ describe('Testar signin', () => {
 
   it('Deve retornar email ou senha incorreto por senha estar incorreta', async () => {
     const response = await request(app).post('/signin').send({
-      id: '12',
-      type: 'company',
       email: 'testecompany@teste.com',
       password: 'asdvadasdA@',
     });
