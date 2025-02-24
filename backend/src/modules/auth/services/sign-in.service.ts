@@ -5,7 +5,6 @@ import jwt from 'jsonwebtoken';
 
 export const signInService = {
   async login(userData: SignIn) {
-    console.log(userData);
     const dataFound = await findAuthUser(userData);
 
     if (!dataFound || !(await bcrypt.compare(userData.password, dataFound.authUser.password))) {

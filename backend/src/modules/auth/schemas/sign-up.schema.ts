@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { UserType } from '../constants/auth.constants';
+import { UserType } from '../../../constants/api.constants';
 
 export const signUpSchema = z
   .object({

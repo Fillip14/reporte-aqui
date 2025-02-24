@@ -1,6 +1,6 @@
 import express from 'express';
 import { authMiddleware } from '../../../middlewares/middleware';
-import { UserType } from '../constants/individual.constants';
+import { UserType } from '../../../constants/api.constants';
 
 const router = express.Router();
 

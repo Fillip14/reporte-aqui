@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { UserType } from '../constants/auth.constants';
 
 export const signInSchema = z
   .object({

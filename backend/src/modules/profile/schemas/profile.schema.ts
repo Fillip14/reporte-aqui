@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { UserType } from '../constants/profile.constants';
+import { UserType } from '../../../constants/api.constants';
 
 export const profileDataSchema = z.object({
   id: z.string().min(1),
