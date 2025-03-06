@@ -27,7 +27,7 @@ export const authMiddleware = (requiredType?: string) => {
         res.status(HttpStatus.UNAUTHORIZED).json({ error: 'Não autorizado.' });
         return;
       }
-      res.locals.user = { id: decoded.id, type: decoded.type };
+      res.locals.user = { uuid: decoded.uuid, type: decoded.type };
       next();
     } catch (error) {
       logger.error(`Token inválido. Token: ${token}`);

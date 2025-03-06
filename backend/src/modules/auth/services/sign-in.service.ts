@@ -11,7 +11,7 @@ export const signInService = {
       throw new Error('Email ou senha inválidos.');
     }
     return jwt.sign(
-      { id: dataFound.authUser.id, type: dataFound.dataUser.type },
+      { uuid: dataFound.authUser.uuid, type: dataFound.dataUser.type },
       process.env.JWT_SECRET as string,
       {
         expiresIn: 5 * 60,

@@ -17,7 +17,7 @@ describe('Testar edit profile', () => {
   });
 
   it('Deve retornar 400 devido a nao existir o id ou type', async () => {
-    const token = jwt.sign({ id: '1231234', type: 'company' }, process.env.JWT_SECRET as string, {
+    const token = jwt.sign({ uuid: '1231234', type: 'company' }, process.env.JWT_SECRET as string, {
       expiresIn: 5 * 60,
     });
     const response = await request(app)
@@ -30,7 +30,7 @@ describe('Testar edit profile', () => {
   it('Deve retornar 200 OK sem corpo', async () => {
     const { authUser, dataUser, token } = await generateToken();
     const data = { ...authUser, ...dataUser };
-    console.log(data);
+
     const response = await request(app)
       .patch('/profile')
       .set('Cookie', [`auth=${token}`])
@@ -68,7 +68,7 @@ describe('Testar edit profile', () => {
     });
     const { data: authUser, error: authError } = await supabase
       .from('auth')
-      .select('id, email, document')
+      .select('uuid, email, document')
       .eq('document', '22345678912125')
       .single();
 
@@ -77,10 +77,10 @@ describe('Testar edit profile', () => {
     const { data: dataUser, error: dataError } = await supabase
       .from('users')
       .select('*')
-      .eq('id', authUser.id)
+      .eq('uuid', authUser.uuid)
       .single();
     const token = jwt.sign(
-      { id: authUser.id, type: dataUser.type },
+      { uuid: authUser.uuid, type: dataUser.type },
       process.env.JWT_SECRET as string,
       {
         expiresIn: 5 * 60,
@@ -89,7 +89,7 @@ describe('Testar edit profile', () => {
     const response = await request(app)
       .delete('/profile')
       .set('Cookie', [`auth=${token}`])
-      .send({ id: authUser.id, type: dataUser.type });
+      .send({ id: authUser.uuid, type: dataUser.type });
     expect(response.status).toBe(HttpStatus.OK);
     expect(response.text).toContain('');
   });
@@ -114,7 +114,7 @@ describe('Testar edit profile', () => {
       .select('id, *')
       .eq('document', '32345678912123')
       .single();
-    const token = jwt.sign({ id: '1234', type: 'company' }, process.env.JWT_SECRET as string, {
+    const token = jwt.sign({ uuid: '1234', type: 'company' }, process.env.JWT_SECRET as string, {
       expiresIn: 5 * 60,
     });
     const response = await request(app)

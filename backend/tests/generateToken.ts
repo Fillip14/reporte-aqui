@@ -5,7 +5,7 @@ export const generateToken = async () => {
   try {
     const { data: authUser, error: authError } = await supabase
       .from('auth')
-      .select('id, email, document')
+      .select('uuid, email, document')
       .eq('document', '12345678912123')
       .single();
 
@@ -14,11 +14,11 @@ export const generateToken = async () => {
     const { data: dataUser, error: dataError } = await supabase
       .from('users')
       .select('*')
-      .eq('id', authUser.id)
+      .eq('uuid', authUser.uuid)
       .single();
 
     const token = jwt.sign(
-      { id: authUser.id, type: dataUser.type },
+      { uuid: authUser.uuid, type: dataUser.type },
       process.env.JWT_SECRET as string,
       {
         expiresIn: 5 * 60,
