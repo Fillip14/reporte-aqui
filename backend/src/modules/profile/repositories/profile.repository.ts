@@ -25,7 +25,7 @@ export const patchUser = async (user: ProfileUpdate, userId: string) => {
   const { email, ...userData } = user;
   const { data: authUser, error: authError } = await supabase
     .from('auth')
-    .update(email)
+    .update({ email })
     .eq('uuid', userId);
 
   const { data: dataUser, error: dataError } = await supabase
