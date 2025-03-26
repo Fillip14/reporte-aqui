@@ -1,20 +1,16 @@
 import { z } from 'zod';
 
-export const userSchema = z.object({
-  email: z.string().email(),
-  name: z.string().min(1),
-  cpf: z
+const companyNames = ['Empresa A', 'Empresa B', 'Empresa C'];
+
+export const reportSchema = z.object({
+  title: z.string().min(1),
+  description: z.string().min(1),
+  vinculedCompany: z
     .string()
-    .length(11)
-    .regex(/^\d{11}$/),
-  country: z.string().min(1),
-  state: z.string().min(1),
-  city: z.string().min(1),
-  neighborhood: z.string().min(1),
-  street: z.string().min(1),
-  number: z.number().min(1),
-  zipcode: z.string().regex(/^\d{5}-\d{3}$/),
-  password: z.string().min(6),
+    .min(1)
+    .refine((value) => companyNames.includes(value), {
+      message: 'Empresa vinculada inválida',
+    }),
 });
 
-export type User = z.infer<typeof userSchema>;
+export type Report = z.infer<typeof reportSchema>;

@@ -1,19 +1,31 @@
 import { HttpStatus } from '../../../constants/api.constants';
-import { userService } from '../services/individual-service';
+import { listReportsService, reportService } from '../services/individual-service';
 import express, { Request, Response } from 'express';
-import { userSchema } from '../schemas/individual-schema';
+import { reportSchema } from '../schemas/individual-schema';
 
-export const registerUser = async (req: Request, res: Response) => {
+export const registerReport = async (req: Request, res: Response) => {
   try {
-    const userData = userSchema.safeParse(req.body);
+    const user = res.locals.user;
+    const dataReport = reportSchema.safeParse(req.body);
 
-    if (!userData.success) {
-      res.status(HttpStatus.BAD_REQUEST).json({ error: userData.error });
+    if (!dataReport.success) {
+      res.status(HttpStatus.BAD_REQUEST).json({ error: dataReport.error });
       return;
     }
 
-    const user = await userService.register(userData.data);
-    res.status(HttpStatus.CREATED).json({ user });
+    const report = await reportService(dataReport.data, user.uuid);
+
+    res.status(HttpStatus.CREATED).json({ report });
+  } catch (error: any) {
+    res.status(HttpStatus.BAD_REQUEST).json({ error: error.message });
+  }
+};
+
+export const listReports = async (req: Request, res: Response) => {
+  try {
+    const user = res.locals.user;
+    const listReports = await listReportsService(user.uuid);
+    res.status(HttpStatus.OK).json({ listReports });
   } catch (error: any) {
     res.status(HttpStatus.BAD_REQUEST).json({ error: error.message });
   }

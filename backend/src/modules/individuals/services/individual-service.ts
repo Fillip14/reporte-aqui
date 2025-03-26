@@ -1,14 +1,10 @@
-import { create, findByEmail } from '../repositories/individual-repository';
-import { User } from '../schemas/individual-schema';
+import { create, listReports } from '../repositories/individual-repository';
+import { Report } from '../schemas/individual-schema';
 
-const checkUserDoesNotExist = async (email: User['email']) => {
-  const existingUser = await findByEmail(email);
-  if (existingUser) throw new Error('Usuário já existe.');
+export const reportService = async (dataReport: Report, userId: string) => {
+  return await create(dataReport, userId);
 };
 
-export const userService = {
-  async register(userData: User) {
-    await checkUserDoesNotExist(userData.email);
-    return create(userData);
-  },
+export const listReportsService = async (userId: string) => {
+  return await listReports(userId);
 };

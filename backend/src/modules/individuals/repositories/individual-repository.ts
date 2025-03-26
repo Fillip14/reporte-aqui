@@ -1,19 +1,29 @@
 import { supabase } from '../../../database/supabaseClient';
-import { User } from '../schemas/individual-schema';
+import { Report } from '../schemas/individual-schema';
 
-export const findByEmail = async (email: User['email']): Promise<User> => {
-  const { data, error } = await supabase.from('users').select('*').eq('email', email).single();
-
-  return data;
-};
-
-export const create = async (userData: User): Promise<string> => {
-  const { data: newUser, error: insertError } = await supabase
-    .from('users')
-    .insert([userData])
+export const create = async (dataReport: Report, userId: string) => {
+  const { data: newReport, error: reportError } = await supabase
+    .from('reports')
+    .insert({
+      uuid: userId,
+      title: dataReport.title,
+      description: dataReport.description,
+      vinculedCompany: dataReport.vinculedCompany,
+    })
     .select();
 
-  if (insertError) throw new Error('Erro ao cadastrar usuário.');
+  if (reportError) throw new Error('Erro ao cadastrar report.');
 
-  return newUser[0].name;
+  return true;
+};
+
+export const listReports = async (userId: string) => {
+  const { data: reportsData, error: reportsError } = await supabase
+    .from('reports')
+    .select('*')
+    .eq('uuid', userId);
+
+  if (reportsError) throw new Error('Erro ao listar reports.');
+
+  return reportsData;
 };
