@@ -3,6 +3,7 @@ import routes from './routes/routes';
 import routesAuth from './modules/auth/routes/auth.routes';
 import routesProfile from './modules/profile/routes/profile.routes';
 import routesReports from './modules/individuals/routes/individual-routes';
+import routesUploadImage from './modules/uploadImages/routes/upload-image.routes';
 const cookieParser = require('cookie-parser');
 
 export const app = express();
@@ -13,4 +14,5 @@ app.use(routesAuth);
 app.use(routesProfile);
 app.use(routesProfile);
 app.use(routesReports);
+app.use(routesUploadImage);
 app.use(routes);
