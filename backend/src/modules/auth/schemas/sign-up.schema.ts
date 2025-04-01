@@ -15,6 +15,7 @@ export const signUpSchema = z
     zipcode: z.string().regex(/^\d{5}-\d{3}$/),
     document: z.string(),
     password: z.string(),
+    profileImage: z.string().url().optional().nullable(),
     // .min(8, 'A senha deve ter no mínimo 8 caracteres')
     // .regex(/[A-Z]/, 'A senha deve ter pelo menos uma letra maiúscula')
     // .regex(/[a-z]/, 'A senha deve ter pelo menos uma letra minúscula')
