@@ -1,5 +1,9 @@
 import express, { Request, Response } from 'express';
-import { deleteImageService, uploadImageService } from '../services/image-profile.service';
+import {
+  deleteImageService,
+  downloadImageService,
+  uploadImageService,
+} from '../services/image-profile.service';
 import { HttpStatus } from '../../../constants/api.constants';
 import logger from '../../../utils/log/logger';
 
@@ -14,10 +18,24 @@ export const uploadImageController = async (req: Request, res: Response) => {
       return;
     }
 
-    const imageUrl = await uploadImageService(file, user.uuid);
+    const pressignedUploadURL = await uploadImageService(file, user.uuid);
 
-    logger.info(`Upload realizado com sucesso!. ${imageUrl}`);
-    res.status(HttpStatus.OK).json({ message: 'Upload realizado com sucesso!' });
+    logger.info(`URL pressigned obtida. ${pressignedUploadURL}`);
+    res.status(HttpStatus.OK).json({ message: 'URL pressigned obtida!', pressignedUploadURL });
+  } catch (error: any) {
+    logger.error(`${error}`);
+    res.status(HttpStatus.BAD_REQUEST).json({ error: error.message });
+  }
+};
+
+export const downloadImageController = async (req: Request, res: Response) => {
+  try {
+    const user = res.locals.user;
+
+    const pressignedDowloadURL = await downloadImageService(user.uuid);
+
+    logger.info(`URL download obtida. ${pressignedDowloadURL}`);
+    res.status(HttpStatus.OK).json({ message: 'URL download obtida.', pressignedDowloadURL });
   } catch (error: any) {
     logger.error(`${error}`);
     res.status(HttpStatus.BAD_REQUEST).json({ error: error.message });
