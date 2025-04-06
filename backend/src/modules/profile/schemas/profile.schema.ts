@@ -16,7 +16,7 @@ export const profileUpdateSchema = z.object({
   street: z.string().min(1),
   number: z.string().min(1),
   zipcode: z.string().regex(/^\d{5}-\d{3}$/),
-  profileImage: z.string().url().optional().nullable(),
+  URLprofileImage: z.string().url().optional().nullable(),
 });
 
 export type ProfileUpdate = z.infer<typeof profileUpdateSchema>;
