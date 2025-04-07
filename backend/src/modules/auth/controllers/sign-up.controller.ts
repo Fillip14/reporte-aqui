@@ -8,11 +8,17 @@ export const registerController = async (req: Request, res: Response) => {
   try {
     const { document, ...userData } = req.body;
 
-    if (!document) res.status(HttpStatus.BAD_REQUEST).json({ error: 'Documento não informado.' });
+    if (!document) {
+      logger.error(`Documento não informado.`);
+      res.status(HttpStatus.BAD_REQUEST).json({ error: 'Documento não informado.' });
+      return;
+    }
 
     await signUpService.findUser(document);
 
+    //VERIFICAR EXISTENCIA DE CPF
     if (Object.keys(userData).length === 0) {
+      logger.info(`CPF não cadastrado ainda.`);
       res.status(HttpStatus.OK).json({});
       return;
     }

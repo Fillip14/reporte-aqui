@@ -34,6 +34,7 @@ export const uploadImage = async (file: Express.Multer.File, uuid: string) => {
 
   // return pressignedData;
 
+  // FRONTEND DAQUI PARA BAIXO
   const { data: uploadData, error: uploadError } = await supabase.storage
     .from(`reporte-aqui`)
     .uploadToSignedUrl(pathImage, pressignedData.token, file.buffer, {

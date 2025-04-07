@@ -13,8 +13,8 @@ Atualmente em fase de construção.
 | Logout usuarios (empresa/individual)         | :heavy_check_mark: |
 | Editar dados cadastrais (empresa/individual) | :heavy_check_mark: |
 | Excluir usuário (empresa/individual)         | :heavy_check_mark: |
-| Rotas autenticadas                           | :x:                |
-| Cadastro problemas                           | :x:                |
+| Rotas autenticadas                           | :heavy_check_mark: |
+| Cadastro problemas                           | :warning:          |
 | - Titulo/descrição                           | :x:                |
 | - Anexo media                                | :x:                |
 | Listar problemas                             | :x:                |

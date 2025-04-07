@@ -4,7 +4,7 @@ import {
   deleteImageController,
   downloadImageController,
 } from '../controllers/image-profile.controller';
-import { uploadMiddlewareSingle } from '../middlewares/storage.middleware';
+import { uploadMiddlewareSingle } from '../../../middlewares/storage.middleware';
 import { authMiddleware } from '../../../middlewares/middleware';
 
 const storageRoutes = express.Router();
