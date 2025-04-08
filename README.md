@@ -14,10 +14,10 @@ Atualmente em fase de construção.
 | Editar dados cadastrais (empresa/individual) | :heavy_check_mark: |
 | Excluir usuário (empresa/individual)         | :heavy_check_mark: |
 | Rotas autenticadas                           | :heavy_check_mark: |
-| Cadastro problemas                           | :warning:          |
-| - Titulo/descrição                           | :x:                |
-| - Anexo media                                | :x:                |
-| Listar problemas                             | :x:                |
+| Cadastro problemas                           | :heavy_check_mark: |
+| - Titulo/descrição                           | :heavy_check_mark: |
+| - Anexo media                                | :heavy_check_mark: |
+| Listar problemas                             | :heavy_check_mark: |
 | Up/down prioridades                          | :x:                |
 | Resolvido/não resolvido                      | :x:                |
 | Cancelamento do report                       | :x:                |

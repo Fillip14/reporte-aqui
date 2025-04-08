@@ -32,7 +32,7 @@ export const listReports = async (req: Request, res: Response) => {
     const listReports = await listReportsService(user.uuid);
 
     logger.info(`Reports listados com sucesso!`);
-    res.status(HttpStatus.OK).json({ message: 'Reports listados com sucesso!' });
+    res.status(HttpStatus.OK).json({ message: 'Reports listados com sucesso!', listReports });
   } catch (error: any) {
     logger.error(`Erro ao listar reports. ${error}`);
     res.status(HttpStatus.BAD_REQUEST).json({ error: error.message });

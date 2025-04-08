@@ -41,9 +41,8 @@ export const create = async (files: Express.Multer.File[], dataReport: Report, u
     const extension = mime.extension(file.mimetype) as string;
     const filePath = `post-docs/${userId}/${report.id}/doc${i + 1}.${extension}`;
 
-    if (!allowedExtensions.includes(extension)) {
+    if (!allowedExtensions.includes(extension))
       throw new Error(`Tipo de arquivo não permitido: .${extension}`);
-    }
 
     const { data: signedUrlData, error: signedUrlError } = await supabase.storage
       .from('reporte-aqui')
@@ -86,7 +85,6 @@ export const create = async (files: Express.Multer.File[], dataReport: Report, u
 
       if (updateDocsError)
         throw new Error(`Erro ao fazer update dos dados do DOC: ${updateDocsError.message}`);
-      if (!updateDocsData) throw new Error('rro ao fazer update dos dados do DOC');
 
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from(`reporte-aqui`)
