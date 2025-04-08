@@ -34,6 +34,12 @@ export const create = async (files: Express.Multer.File[], dataReport: Report, u
     'gif',
     'bmp',
     'webp',
+    'mp4',
+    'mov',
+    'avi',
+    'wmv',
+    'mkv',
+    'webm',
   ];
 
   for (let i = 0; i < files.length; i++) {
