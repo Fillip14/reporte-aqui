@@ -24,6 +24,5 @@ dist-ssr
 *.sw?
 
 # Outros
-reporte-aqui.png
-infos.txt
+/projectinfos
 .env
