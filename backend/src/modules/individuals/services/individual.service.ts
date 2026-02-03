@@ -1,10 +1,10 @@
-import { create, listReports } from '../repositories/individual-repository';
-import { Report } from '../schemas/individual-schema';
+import { create, listReports } from '../repositories/individual.repository';
+import { Report } from '../schemas/individual.schema';
 
 export const reportService = async (
   files: Express.Multer.File[],
   dataReport: Report,
-  userId: string
+  userId: string,
 ) => {
   return await create(files, dataReport, userId);
 };

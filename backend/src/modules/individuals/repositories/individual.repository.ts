@@ -1,5 +1,5 @@
 import { supabase } from '../../../database/supabaseClient';
-import { Report } from '../schemas/individual-schema';
+import { Report } from '../schemas/individual.schema';
 import mime from 'mime-types';
 
 export const create = async (files: Express.Multer.File[], dataReport: Report, userId: string) => {

@@ -1,7 +1,7 @@
 import { HttpStatus } from '../../../constants/api.constants';
 import { listReportsService, reportService } from '../services/individual-service';
 import express, { Request, Response } from 'express';
-import { reportSchema } from '../schemas/individual-schema';
+import { reportSchema } from '../schemas/individual.schema';
 import logger from '../../../utils/log/logger';
 
 export const registerReport = async (req: Request, res: Response) => {
