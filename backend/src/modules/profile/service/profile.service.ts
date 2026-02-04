@@ -5,8 +5,8 @@ export const getProfileService = async (userData: ProfileData) => {
   return await findUserByID(userData);
 };
 
-export const patchProfileService = async (userData: ProfileUpdate, userId: string) => {
-  return await patchUser(userData, userId);
+export const patchProfileService = async (userData: ProfileUpdate, userID: string) => {
+  return await patchUser(userData, userID);
 };
 
 export const deleteProfileService = async (userData: ProfileData) => {

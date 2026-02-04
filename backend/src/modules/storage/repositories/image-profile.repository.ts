@@ -9,22 +9,22 @@ const getPublicImageUrl = (path: string) => {
   return data.publicUrl;
 };
 
-const findImageFile = async (uuid: string) => {
+const findImageFile = async (userID: string) => {
   const { data, error } = await supabase.storage
     .from(BUCKET)
-    .list(PROFILE_PREFIX, { limit: 1, search: uuid });
+    .list(PROFILE_PREFIX, { limit: 1, search: userID });
 
   if (error) throw new Error(`Erro ao listar arquivos: ${error.message}`);
 
   return data && data.length > 0 ? data[0] : undefined;
 };
 
-export const uploadImage = async (file: Express.Multer.File, uuid: string) => {
-  const existing = await findImageFile(uuid);
+export const uploadImage = async (file: Express.Multer.File, userID: string) => {
+  const existing = await findImageFile(userID);
 
-  if (existing) await deleteImage(uuid);
+  if (existing) await deleteImage(userID);
 
-  const pathImage = `${PROFILE_PREFIX}/${uuid}.${file.mimetype.split('/')[1]}`;
+  const pathImage = `${PROFILE_PREFIX}/${userID}.${file.mimetype.split('/')[1]}`;
 
   const { data: pressignedData, error: pressignedError } = await supabase.storage
     .from(BUCKET)
@@ -50,8 +50,9 @@ export const uploadImage = async (file: Express.Multer.File, uuid: string) => {
   return imageUrl;
 };
 
-export const downloadImage = async (uuid: string) => {
-  const file = await findImageFile(uuid);
+export const downloadImage = async (userID: string) => {
+  console.log(userID);
+  const file = await findImageFile(userID);
 
   if (file) {
     const pathImage = `${PROFILE_PREFIX}/${file.name}`;
@@ -71,8 +72,8 @@ export const downloadImage = async (uuid: string) => {
   throw new Error('Imagem não encontrada no bucket.');
 };
 
-export const deleteImage = async (uuid: string) => {
-  const file = await findImageFile(uuid);
+export const deleteImage = async (userID: string) => {
+  const file = await findImageFile(userID);
 
   if (file) {
     const pathImage = `${PROFILE_PREFIX}/${file.name}`;

@@ -5,7 +5,7 @@ export const findUserByID = async (user: ProfileData) => {
   const { data: authUser, error: authError } = await supabase
     .from('auth')
     .select('document, email')
-    .eq('uuid', user.uuid)
+    .eq('userID', user.userID)
     .single();
 
   if (authError) throw new Error('Erro ao pesquisar usuário.');
@@ -13,7 +13,7 @@ export const findUserByID = async (user: ProfileData) => {
   const { data: dataUser, error: dataError } = await supabase
     .from('users')
     .select('*')
-    .eq('uuid', user.uuid)
+    .eq('userID', user.userID)
     .single();
 
   if (dataError) throw new Error('Erro ao pesquisar usuário.');
@@ -21,17 +21,17 @@ export const findUserByID = async (user: ProfileData) => {
   return { authUser, dataUser };
 };
 
-export const patchUser = async (user: ProfileUpdate, userId: string) => {
+export const patchUser = async (user: ProfileUpdate, userID: string) => {
   const { email, ...userData } = user;
   const { data: authUser, error: authError } = await supabase
     .from('auth')
     .update({ email })
-    .eq('uuid', userId);
+    .eq('userID', userID);
 
   const { data: dataUser, error: dataError } = await supabase
     .from('users')
     .update(userData)
-    .eq('uuid', userId);
+    .eq('userID', userID);
 
   if (authError || dataError) throw new Error('Erro ao atualizar usuário.');
 
@@ -42,7 +42,7 @@ export const deleteUser = async (user: ProfileData) => {
   const { data: authUser, error: authError } = await supabase
     .from('auth')
     .delete()
-    .eq('uuid', user.uuid);
+    .eq('userID', user.userID);
 
   if (authError) throw new Error('Erro ao excluir o usuário.');
   return;

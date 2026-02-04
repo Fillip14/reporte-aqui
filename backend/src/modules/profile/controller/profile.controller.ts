@@ -20,7 +20,7 @@ export const getProfileController = async (req: Request, res: Response) => {
     }
     const data = await getProfileService(userData.data);
 
-    logger.info(`Busca realizada com sucesso. ID: ${userData.data.uuid}`);
+    logger.info(`Busca realizada com sucesso. ID: ${userData.data.userID}`);
     res.status(HttpStatus.OK).json({ message: data });
   } catch (error: any) {
     logger.error(`${error}`);
@@ -39,9 +39,9 @@ export const patchProfileController = async (req: Request, res: Response) => {
       res.status(HttpStatus.BAD_REQUEST).json({ error: 'Informações incorretas ou faltando.' });
       return;
     }
-    await patchProfileService(userData.data, user.uuid);
+    await patchProfileService(userData.data, user.userID);
 
-    logger.info(`Atualizacao realizada com sucesso. ID: ${user.uuid}`);
+    logger.info(`Atualizacao realizada com sucesso. ID: ${user.userID}`);
     res.status(HttpStatus.OK).json({});
   } catch (error: any) {
     logger.error(`${error}`);
@@ -62,7 +62,7 @@ export const deleteProfileController = async (req: Request, res: Response) => {
     }
     await deleteProfileService(userData.data);
 
-    logger.info(`Usuário excluido com sucesso. ID: ${user.uuid}`);
+    logger.info(`Usuário excluido com sucesso. ID: ${user.userID}`);
     res.status(HttpStatus.OK).json({});
   } catch (error: any) {
     logger.error(`${error}`);

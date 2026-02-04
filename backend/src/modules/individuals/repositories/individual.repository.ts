@@ -2,11 +2,11 @@ import { supabase } from '../../../database/supabaseClient';
 import { Report } from '../schemas/individual.schema';
 import mime from 'mime-types';
 
-export const create = async (files: Express.Multer.File[], dataReport: Report, userId: string) => {
+export const create = async (files: Express.Multer.File[], dataReport: Report, userID: string) => {
   const { data: newReport, error: reportError } = await supabase
     .from('reports')
     .insert({
-      uuid: userId,
+      userID: userID,
       title: dataReport.title,
       description: dataReport.description,
       company: dataReport.company,
@@ -45,7 +45,7 @@ export const create = async (files: Express.Multer.File[], dataReport: Report, u
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
     const extension = mime.extension(file.mimetype) as string;
-    const filePath = `post-docs/${userId}/${report.id}/doc${i + 1}.${extension}`;
+    const filePath = `post-docs/${userID}/${report.id_reports}/doc${i + 1}.${extension}`;
 
     if (!allowedExtensions.includes(extension))
       throw new Error(`Tipo de arquivo não permitido: .${extension}`);
@@ -87,7 +87,7 @@ export const create = async (files: Express.Multer.File[], dataReport: Report, u
           [docField]: path,
           [textField]: textValue,
         })
-        .eq('id', report.id);
+        .eq('id_reports', report.id_reports);
 
       if (updateDocsError)
         throw new Error(`Erro ao fazer update dos dados do DOC: ${updateDocsError.message}`);
@@ -107,11 +107,11 @@ export const create = async (files: Express.Multer.File[], dataReport: Report, u
   return true;
 };
 
-export const listReports = async (userId: string) => {
+export const listReports = async (userID: string) => {
   const { data: reportsData, error: reportsError } = await supabase
     .from('reports')
     .select('*')
-    .eq('uuid', userId);
+    .eq('userID', userID);
 
   if (reportsError) throw new Error(`Erro ao listar report: ${reportsError.message}`);
   if (!reportsData) throw new Error('Erro ao listar reports.');

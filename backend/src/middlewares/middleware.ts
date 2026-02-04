@@ -22,12 +22,12 @@ export const authMiddleware = (requiredType?: string) => {
         !['COMPANY', 'INDIVIDUAL'].includes(decoded.type.toUpperCase())
       ) {
         logger.error(
-          `Token inválido. Token: ${JSON.stringify(decoded)}. Required: ${requiredType}`
+          `Token inválido. Token: ${JSON.stringify(decoded)}. Required: ${requiredType}`,
         );
         res.status(HttpStatus.UNAUTHORIZED).json({ error: 'Não autorizado.' });
         return;
       }
-      res.locals.user = { uuid: decoded.uuid, type: decoded.type };
+      res.locals.user = { userID: decoded.userID, type: decoded.type };
       next();
     } catch (error) {
       logger.error(`Token inválido. Token: ${token}`);

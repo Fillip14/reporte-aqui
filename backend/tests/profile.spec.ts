@@ -17,9 +17,13 @@ describe('Testar edit profile', () => {
   });
 
   it('Deve retornar 400 devido a nao existir o id ou type', async () => {
-    const token = jwt.sign({ uuid: '1231234', type: 'company' }, process.env.JWT_SECRET as string, {
-      expiresIn: 5 * 60,
-    });
+    const token = jwt.sign(
+      { userID: '1231234', type: 'company' },
+      process.env.JWT_SECRET as string,
+      {
+        expiresIn: 5 * 60,
+      },
+    );
     const response = await request(app)
       .get('/profile')
       .set('Cookie', [`auth=${token}`]);
@@ -68,7 +72,7 @@ describe('Testar edit profile', () => {
     });
     const { data: authUser, error: authError } = await supabase
       .from('auth')
-      .select('uuid, email, document')
+      .select('userID, email, document')
       .eq('document', '22345678912125')
       .single();
 
@@ -77,19 +81,19 @@ describe('Testar edit profile', () => {
     const { data: dataUser, error: dataError } = await supabase
       .from('users')
       .select('*')
-      .eq('uuid', authUser.uuid)
+      .eq('userID', authUser.userID)
       .single();
     const token = jwt.sign(
-      { uuid: authUser.uuid, type: dataUser.type },
+      { userID: authUser.userID, type: dataUser.type },
       process.env.JWT_SECRET as string,
       {
         expiresIn: 5 * 60,
-      }
+      },
     );
     const response = await request(app)
       .delete('/profile')
       .set('Cookie', [`auth=${token}`])
-      .send({ id: authUser.uuid, type: dataUser.type });
+      .send({ id: authUser.userID, type: dataUser.type });
     expect(response.status).toBe(HttpStatus.OK);
     expect(response.text).toContain('');
   });
@@ -114,7 +118,7 @@ describe('Testar edit profile', () => {
       .select('id, *')
       .eq('document', '32345678912123')
       .single();
-    const token = jwt.sign({ uuid: '1234', type: 'company' }, process.env.JWT_SECRET as string, {
+    const token = jwt.sign({ userID: '1234', type: 'company' }, process.env.JWT_SECRET as string, {
       expiresIn: 5 * 60,
     });
     const response = await request(app)

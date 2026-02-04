@@ -11,11 +11,11 @@ export const signInService = {
       throw new Error('Email ou senha inválidos.');
     }
     return jwt.sign(
-      { uuid: dataFound.authUser.uuid, type: dataFound.dataUser.type },
+      { userID: dataFound.authUser.userID, type: dataFound.dataUser.type },
       process.env.JWT_SECRET as string,
       {
         expiresIn: 5 * 60,
-      }
+      },
     );
   },
 };

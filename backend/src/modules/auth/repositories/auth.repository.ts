@@ -5,18 +5,18 @@ import { SignUp } from '../schemas/sign-up.schema';
 export const findAuthUser = async (itemToSearch: SignIn) => {
   const { data: authUser, error: findError } = await supabase
     .from('auth')
-    .select('uuid, password')
+    .select('userID, password')
     .or(`document.eq.${itemToSearch.document},email.eq.${itemToSearch.email}`)
     .single();
 
   if (findError) throw new Error('Erro ao pesquisar cadastro.');
 
-  const userId = authUser.uuid;
+  const userID = authUser.userID;
 
   const { data: dataUser, error: userError } = await supabase
     .from('users')
     .select('type')
-    .eq('uuid', userId)
+    .eq('userID', userID)
     .single();
 
   if (userError) throw new Error('Erro ao pesquisar cadastro.');
@@ -39,16 +39,16 @@ export const create = async (userData: SignUp): Promise<string> => {
   const { data: newAuthUser, error: authInsertError } = await supabase
     .from('auth')
     .insert({ email: userData.email, password: userData.password, document: userData.document })
-    .select('uuid');
+    .select('userID');
 
   if (authInsertError) throw new Error('Erro ao cadastrar.');
 
-  const userId = newAuthUser[0].uuid; // Pega o id da tabela auth
+  const userID = newAuthUser[0].userID; // Pega o id da tabela auth
 
   const { data: newUser, error: userInsertError } = await supabase
     .from('users')
     .insert({
-      uuid: userId, // Chave estrangeira da tabela auth
+      userID: userID, // Chave estrangeira da tabela auth
       type: userData.type,
       name: userData.name,
       country: userData.country,

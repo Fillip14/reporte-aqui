@@ -18,7 +18,7 @@ export const uploadImageController = async (req: Request, res: Response) => {
       return;
     }
 
-    const pressignedUploadURL = await uploadImageService(file, user.uuid);
+    const pressignedUploadURL = await uploadImageService(file, user.userID);
 
     logger.info(`URL pressigned obtida. ${pressignedUploadURL}`);
     res.status(HttpStatus.OK).json({ message: 'URL pressigned obtida!', pressignedUploadURL });
@@ -32,7 +32,7 @@ export const downloadImageController = async (req: Request, res: Response) => {
   try {
     const user = res.locals.user;
 
-    const pressignedDowloadURL = await downloadImageService(user.uuid);
+    const pressignedDowloadURL = await downloadImageService(user.userID);
 
     logger.info(`URL download obtida. ${pressignedDowloadURL}`);
     res.status(HttpStatus.OK).json({ message: 'URL download obtida.', pressignedDowloadURL });
@@ -46,7 +46,7 @@ export const deleteImageController = async (req: Request, res: Response) => {
   try {
     const user = res.locals.user;
 
-    await deleteImageService(user.uuid);
+    await deleteImageService(user.userID);
 
     logger.info('Arquivo deletado com sucesso!');
     res.status(HttpStatus.OK).json({ message: 'Arquivo deletado com sucesso!' });

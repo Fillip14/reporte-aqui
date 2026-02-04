@@ -4,11 +4,11 @@ import { Report } from '../schemas/individual.schema';
 export const reportService = async (
   files: Express.Multer.File[],
   dataReport: Report,
-  userId: string,
+  userID: string,
 ) => {
-  return await create(files, dataReport, userId);
+  return await create(files, dataReport, userID);
 };
 
-export const listReportsService = async (userId: string) => {
-  return await listReports(userId);
+export const listReportsService = async (userID: string) => {
+  return await listReports(userID);
 };
