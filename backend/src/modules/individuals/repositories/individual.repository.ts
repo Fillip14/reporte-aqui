@@ -1,10 +1,16 @@
 import { supabase } from '../../../database/supabaseClient';
 import { Report } from '../schemas/individual.schema';
 import mime from 'mime-types';
+import {
+  BUCKET,
+  TABLE_REPORTS,
+  COLUMN_ID_REPORTS,
+  COLUMN_USER_ID,
+} from '../../../constants/database.constants';
 
 export const create = async (files: Express.Multer.File[], dataReport: Report, userID: string) => {
   const { data: newReport, error: reportError } = await supabase
-    .from('reports')
+    .from(TABLE_REPORTS)
     .insert({
       userID: userID,
       title: dataReport.title,
@@ -51,7 +57,7 @@ export const create = async (files: Express.Multer.File[], dataReport: Report, u
       throw new Error(`Tipo de arquivo não permitido: .${extension}`);
 
     const { data: signedUrlData, error: signedUrlError } = await supabase.storage
-      .from('reporte-aqui')
+      .from(BUCKET)
       .createSignedUploadUrl(filePath, { upsert: true });
 
     if (signedUrlError) throw new Error(`Erro ao criar URL de upload: ${signedUrlError.message}`);
@@ -82,18 +88,18 @@ export const create = async (files: Express.Multer.File[], dataReport: Report, u
       const textValue = dataReport[`textDoc${i + 1}` as keyof typeof dataReport];
 
       const { data: updateDocsData, error: updateDocsError } = await supabase
-        .from('reports')
+        .from(TABLE_REPORTS)
         .update({
           [docField]: path,
           [textField]: textValue,
         })
-        .eq('id_reports', report.id_reports);
+        .eq(COLUMN_ID_REPORTS, report.id_reports);
 
       if (updateDocsError)
         throw new Error(`Erro ao fazer update dos dados do DOC: ${updateDocsError.message}`);
 
       const { data: uploadData, error: uploadError } = await supabase.storage
-        .from(`reporte-aqui`)
+        .from(BUCKET)
         .uploadToSignedUrl(path, token, file.buffer, {
           contentType: type,
           cacheControl: '3600',
@@ -109,9 +115,9 @@ export const create = async (files: Express.Multer.File[], dataReport: Report, u
 
 export const listReports = async (userID: string) => {
   const { data: reportsData, error: reportsError } = await supabase
-    .from('reports')
+    .from(TABLE_REPORTS)
     .select('*')
-    .eq('userID', userID);
+    .eq(COLUMN_USER_ID, userID);
 
   if (reportsError) throw new Error(`Erro ao listar report: ${reportsError.message}`);
   if (!reportsData) throw new Error('Erro ao listar reports.');

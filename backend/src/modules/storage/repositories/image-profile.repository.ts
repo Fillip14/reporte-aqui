@@ -1,7 +1,5 @@
 import { supabase } from '../../../database/supabaseClient';
-
-const BUCKET = 'reporte-aqui';
-const PROFILE_PREFIX = 'profile-images';
+import { BUCKET, PROFILE_PREFIX } from '../../../constants/database.constants';
 
 const getPublicImageUrl = (path: string) => {
   const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);

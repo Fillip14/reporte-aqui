@@ -1,22 +1,30 @@
 import { supabase } from '../../../database/supabaseClient';
 import { SignIn } from '../schemas/sign-in.schema';
 import { SignUp } from '../schemas/sign-up.schema';
+import {
+  BUCKET,
+  TABLE_AUTH,
+  TABLE_USERS,
+  COLUMN_USER_ID,
+  TABLE_REPORTS,
+  COLUMN_ID_REPORTS,
+} from '../../../constants/database.constants';
 
 export const findAuthUser = async (itemToSearch: SignIn) => {
   const { data: authUser, error: findError } = await supabase
-    .from('auth')
-    .select('userID, password')
+    .from(TABLE_AUTH)
+    .select(`${COLUMN_USER_ID}, password`)
     .or(`document.eq.${itemToSearch.document},email.eq.${itemToSearch.email}`)
     .single();
 
   if (findError) throw new Error('Erro ao pesquisar cadastro.');
 
-  const userID = authUser.userID;
+  const userID = authUser[COLUMN_USER_ID];
 
   const { data: dataUser, error: userError } = await supabase
-    .from('users')
+    .from(TABLE_USERS)
     .select('type')
-    .eq('userID', userID)
+    .eq(COLUMN_USER_ID, userID)
     .single();
 
   if (userError) throw new Error('Erro ao pesquisar cadastro.');
@@ -26,7 +34,7 @@ export const findAuthUser = async (itemToSearch: SignIn) => {
 
 export const findRegisteredUser = async (itemToSearch: SignUp['document'] | SignUp['email']) => {
   const { count, error } = await supabase
-    .from('auth')
+    .from(TABLE_AUTH)
     .select('*', { count: 'exact', head: true })
     .or(`document.eq.${itemToSearch},email.eq.${itemToSearch}`);
 
@@ -37,16 +45,16 @@ export const findRegisteredUser = async (itemToSearch: SignUp['document'] | Sign
 
 export const create = async (userData: SignUp): Promise<string> => {
   const { data: newAuthUser, error: authInsertError } = await supabase
-    .from('auth')
+    .from(TABLE_AUTH)
     .insert({ email: userData.email, password: userData.password, document: userData.document })
-    .select('userID');
+    .select(COLUMN_USER_ID);
 
   if (authInsertError) throw new Error('Erro ao cadastrar.');
 
-  const userID = newAuthUser[0].userID; // Pega o id da tabela auth
+  const userID = newAuthUser[0][COLUMN_USER_ID]; // Pega o id da tabela auth
 
   const { data: newUser, error: userInsertError } = await supabase
-    .from('users')
+    .from(TABLE_USERS)
     .insert({
       userID: userID, // Chave estrangeira da tabela auth
       type: userData.type,
