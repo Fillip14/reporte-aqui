@@ -1,22 +1,8 @@
-import express from 'express';
-import {
-  uploadImageController,
-  deleteImageController,
-  downloadImageController,
-} from '../controllers/image-profile.controller';
-import { uploadMiddlewareSingle } from '../../../middlewares/storage.middleware';
-import { authMiddleware } from '../../../middlewares/middleware';
+import { Router } from 'express';
+import imageProfileRoutes from './image-profile.routes';
 
-const storageRoutes = express.Router();
+const storageRoutes = Router();
 
-storageRoutes.post(
-  '/upload/profile-image',
-  authMiddleware(),
-  uploadMiddlewareSingle,
-  uploadImageController
-);
-
-storageRoutes.get('/dowload/profile-image', authMiddleware(), downloadImageController);
-storageRoutes.delete('/delete/profile-image', authMiddleware(), deleteImageController);
+storageRoutes.use(imageProfileRoutes);
 
 export default storageRoutes;

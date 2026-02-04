@@ -1,4 +1,4 @@
-import express from 'express';
+import { Router } from 'express';
 import { authMiddleware } from '../../../middlewares/middleware';
 import {
   getProfileController,
@@ -6,7 +6,7 @@ import {
   deleteProfileController,
 } from '../controller/profile.controller';
 
-const routesProfile = express.Router();
+const routesProfile = Router();
 
 routesProfile.get('/profile', authMiddleware(), getProfileController);
 routesProfile.patch('/profile', authMiddleware(), patchProfileController);

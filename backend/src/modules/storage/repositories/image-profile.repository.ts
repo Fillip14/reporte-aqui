@@ -49,7 +49,6 @@ export const uploadImage = async (file: Express.Multer.File, userID: string) => 
 };
 
 export const downloadImage = async (userID: string) => {
-  console.log(userID);
   const file = await findImageFile(userID);
 
   if (file) {
