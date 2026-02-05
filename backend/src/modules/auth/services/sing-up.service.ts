@@ -1,23 +1,21 @@
 import { findRegisteredUser, create } from '../repositories/auth.repository';
-import { SignUp } from '../schemas/sign-up.schema';
+import { SignUp, DocumentOrEmail } from '../schemas/sign-up.schema';
 import bcrypt from 'bcrypt';
 
-export const signUpService = {
-  async register(userData: SignUp) {
-    await signUpService.findUser(userData.document);
+export const findUserService = async (
+  value: DocumentOrEmail['value'],
+  field: DocumentOrEmail['field'],
+) => {
+  const existingUser = await findRegisteredUser(value, field);
 
-    userData.password = await bcrypt.hash(userData.password, 10);
+  if (existingUser) throw new Error(`${field} já cadastrado.`);
+};
 
-    const existingUser = await findRegisteredUser(userData.email);
+export const registerUserService = async (userData: SignUp) => {
+  await findUserService(userData.email, 'email');
+  await findUserService(userData.document, 'document');
 
-    if (existingUser) throw new Error(`Email já cadastrado.`);
+  userData.password = await bcrypt.hash(userData.password, 10);
 
-    return create(userData);
-  },
-
-  async findUser(document: SignUp['document']) {
-    const existingUser = await findRegisteredUser(document);
-
-    if (existingUser) throw new Error(`Usuário já cadastrado.`);
-  },
+  return create(userData);
 };

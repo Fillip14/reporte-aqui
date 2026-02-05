@@ -4,6 +4,8 @@ import { UserType } from '../../../constants/api.constants';
 export const signUpSchema = z
   .object({
     type: z.nativeEnum(UserType),
+    provider: z.string(),
+    providerUid: z.string(),
     email: z.string().email(),
     name: z.string().min(1),
     country: z.string().min(1),
@@ -45,3 +47,8 @@ export const signUpSchema = z
   });
 
 export type SignUp = z.infer<typeof signUpSchema>;
+
+export type DocumentOrEmail = {
+  value: string;
+  field: 'document' | 'email';
+};

@@ -1,6 +1,6 @@
 import { HttpStatus } from '../../../constants/api.constants';
 import { signUpSchema } from '../schemas/sign-up.schema';
-import { signUpService } from '../services/sing-up.service';
+import { registerUserService, findUserService } from '../services/sing-up.service';
 import express, { Request, Response } from 'express';
 import logger from '../../../utils/log/logger';
 
@@ -14,14 +14,14 @@ export const registerController = async (req: Request, res: Response) => {
       return;
     }
 
-    await signUpService.findUser(document);
+    await findUserService(document, 'document');
 
     //VERIFICAR EXISTENCIA DE CPF
-    if (Object.keys(userData).length === 0) {
-      logger.info(`CPF não cadastrado ainda.`);
-      res.status(HttpStatus.OK).json({});
-      return;
-    }
+    // if (Object.keys(userData).length === 0) {
+    //   logger.info(`CPF não cadastrado ainda.`);
+    //   res.status(HttpStatus.OK).json({});
+    //   return;
+    // }
 
     const dataToSignUp = signUpSchema.safeParse({ document, ...userData });
 
@@ -31,7 +31,7 @@ export const registerController = async (req: Request, res: Response) => {
       return;
     }
 
-    const userRegistered = await signUpService.register(dataToSignUp.data);
+    const userRegistered = await registerUserService(dataToSignUp.data);
 
     logger.info(`Cadastro realizado com sucesso. Usuário: ${userRegistered}`);
     res.status(HttpStatus.CREATED).json({ message: 'Cadastro realizado com sucesso.' });
