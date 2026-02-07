@@ -23,7 +23,7 @@ export const findUser = async (itemToSearch: SignIn) => {
 
   if (userError) throw new Error('Erro ao pesquisar cadastro.');
 
-  return { authUser, dataUser };
+  return { user_id: authUser.user_id, password_hash: authUser.password_hash, type: dataUser.type };
 };
 
 export const findRegisteredUser = async (

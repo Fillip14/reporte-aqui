@@ -1,25 +1,21 @@
+import { HttpStatus } from '../../../constants/api.constants';
+import { AppError } from '../../../errors/AppError';
 import { findUser } from '../repositories/auth.repository';
 import { SignIn } from '../schemas/sign-in.schema';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
-export const signInService = {
-  async login(userData: SignIn) {
-    const dataFound = await findUser(userData);
+export const signService = async (userData: SignIn) => {
+  const dataFound = await findUser(userData);
 
-    if (
-      !dataFound ||
-      !(await bcrypt.compare(userData.password, dataFound.authUser.password_hash))
-    ) {
-      throw new Error('Email ou senha inválidos.');
-    }
+  if (!dataFound || !(await bcrypt.compare(userData.password, dataFound.password_hash)))
+    throw new AppError('Email ou senha inválidos.', HttpStatus.UNAUTHORIZED);
 
-    return jwt.sign(
-      { userID: dataFound.authUser.user_id, type: dataFound.dataUser.type },
-      process.env.JWT_SECRET as string,
-      {
-        expiresIn: 5 * 60,
-      },
-    );
-  },
+  return jwt.sign(
+    { user_id: dataFound.user_id, type: dataFound.type },
+    process.env.JWT_SECRET as string,
+    {
+      expiresIn: 5 * 60,
+    },
+  );
 };
