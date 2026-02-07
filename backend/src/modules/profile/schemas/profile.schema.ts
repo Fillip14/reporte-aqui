@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { UserType } from '../../../constants/api.constants';
 
 export const profileDataSchema = z.object({
-  userID: z.string().min(1),
+  user_id: z.string().min(1),
   type: z.nativeEnum(UserType),
 });
 
