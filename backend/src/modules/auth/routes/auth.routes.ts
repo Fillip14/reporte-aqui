@@ -2,13 +2,16 @@ import { Router } from 'express';
 import { registerController } from '../controllers/sign-up.controller';
 import { loginController } from '../controllers/sign-in.controller';
 import { logoutController } from '../controllers/logout.controller';
-import { checkDocumentController } from '../controllers/check-document.controller';
+import { checkDocController } from '../controllers/check-doc.controller';
+import { validate } from '../../../middlewares/validate-schema.middleware';
+import { signUpSchema } from '../schemas/sign-up.schema';
+import { checkDocSchema } from '../schemas/check-doc.schema';
 
 const routesAuth = Router();
 const AUTH_BASE_PATH = '/auth';
 
-routesAuth.post(AUTH_BASE_PATH + '/check-document', checkDocumentController);
-routesAuth.post(AUTH_BASE_PATH + '/signup', registerController);
+routesAuth.post(AUTH_BASE_PATH + '/check-document', validate(checkDocSchema), checkDocController);
+routesAuth.post(AUTH_BASE_PATH + '/signup', validate(signUpSchema), registerController);
 routesAuth.post(AUTH_BASE_PATH + '/signin', loginController);
 routesAuth.post(AUTH_BASE_PATH + '/logout', logoutController);
 
