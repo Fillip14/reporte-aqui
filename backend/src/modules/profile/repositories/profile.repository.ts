@@ -1,50 +1,53 @@
 import { supabase } from '../../../database/supabaseClient';
 import { ProfileData, ProfileUpdate } from '../schemas/profile.schema';
-import { TABLE_AUTH, TABLE_USERS, COLUMN_USER_ID } from '../../../constants/database.constants';
+import { Column, Table, AccountStatus } from '../../../constants/database.constants';
+import { AppError } from '../../../errors/AppError';
 
 export const findUserByID = async (user: ProfileData) => {
-  const { data: authUser, error: authError } = await supabase
-    .from(TABLE_AUTH)
+  const { data: usersData, error: usersError } = await supabase
+    .from(Table.USERS)
     .select('document, email')
-    .eq(COLUMN_USER_ID, user.userID)
+    .eq(Column.UUID, user.user_id)
     .single();
 
-  if (authError) throw new Error('Erro ao pesquisar usuário.');
+  if (usersError) throw new AppError('Erro ao pesquisar usuário.');
 
-  const { data: dataUser, error: dataError } = await supabase
-    .from(TABLE_USERS)
+  const { data: profileData, error: profileError } = await supabase
+    .from(Table.PROFILES)
     .select('*')
-    .eq(COLUMN_USER_ID, user.userID)
+    .eq(Column.USER_ID, user.user_id)
     .single();
 
-  if (dataError) throw new Error('Erro ao pesquisar usuário.');
+  if (profileError) throw new AppError('Erro ao pesquisar usuário.');
 
-  return { authUser, dataUser };
+  return { usersData, profileData };
 };
 
-export const patchUser = async (user: ProfileUpdate, userID: string) => {
+export const patchUser = async (user: ProfileUpdate, user_id: string) => {
   const { email, ...userData } = user;
-  const { data: authUser, error: authError } = await supabase
-    .from(TABLE_AUTH)
+
+  const { data: usersData, error: usersError } = await supabase
+    .from(Table.USERS)
     .update({ email })
-    .eq(COLUMN_USER_ID, userID);
+    .eq(Column.UUID, user_id);
 
-  const { data: dataUser, error: dataError } = await supabase
-    .from(TABLE_USERS)
+  if (usersError) throw new AppError('Erro ao atualizar usuário.');
+
+  const { data: profileData, error: profileError } = await supabase
+    .from(Table.PROFILES)
     .update(userData)
-    .eq(COLUMN_USER_ID, userID);
+    .eq(Column.USER_ID, user_id);
 
-  if (authError || dataError) throw new Error('Erro ao atualizar usuário.');
-
+  if (profileError) throw new AppError('Erro ao atualizar usuário.');
   return;
 };
 
 export const deleteUser = async (user: ProfileData) => {
-  const { data: authUser, error: authError } = await supabase
-    .from(TABLE_AUTH)
-    .delete()
-    .eq(COLUMN_USER_ID, user.userID);
+  const { data: usersData, error: usersError } = await supabase
+    .from(Table.USERS)
+    .update({ status: AccountStatus.DELETED })
+    .eq(Column.UUID, user.user_id);
 
-  if (authError) throw new Error('Erro ao excluir o usuário.');
+  if (usersError) throw new Error('Erro ao excluir o usuário.');
   return;
 };
