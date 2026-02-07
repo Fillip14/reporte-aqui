@@ -31,6 +31,7 @@ export const signUpSchema = z
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: 'CPF inválido',
+          path: ['document'],
         });
         return false;
       }
@@ -40,6 +41,7 @@ export const signUpSchema = z
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: 'CNPJ inválido',
+          path: ['document'],
         });
         return false;
       }

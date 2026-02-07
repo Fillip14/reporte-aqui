@@ -8,6 +8,12 @@ export const checkDocController = async (req: Request, res: Response) => {
   const result = await checkDocService(document);
 
   logger.info(`Documento verificado com sucesso: ${document}`);
-  res.status(HttpStatus.OK).json(result);
+  res
+    .status(HttpStatus.OK)
+    .json({
+      exists: result.exists,
+      status: result.status,
+      suggestedAction: result.suggestedAction,
+    });
   return;
 };
