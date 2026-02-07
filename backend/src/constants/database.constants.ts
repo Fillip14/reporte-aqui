@@ -1,11 +1,25 @@
 export const BUCKET = 'reporte-aqui';
 export const PROFILE_PREFIX = 'profile-images';
-export const TABLE_AUTH = 'auth';
-export const TABLE_USERS = 'users';
-export const TABLE_PROFILES = 'profiles';
-export const TABLE_REPORTS = 'reports';
 
-export const COLUMN_UUID = 'uuid';
-export const COLUMN_USER_ID = 'user_id';
-export const COLUMN_ID_REPORTS = 'id_reports';
-export const COLUMN_DOCUMENT = 'document';
+export const enum Table {
+  AUTH = 'auth',
+  USERS = 'users',
+  PROFILES = 'profiles',
+  REPORTS = 'reports',
+}
+
+export const enum Column {
+  UUID = 'uuid',
+  USER_ID = 'user_id',
+  PROVIDER = 'provider',
+  PROVIDER_UID = 'provider_uid',
+  ID_REPORTS = 'id_reports',
+  DOCUMENT = 'document',
+}
+
+export const enum AccountStatus {
+  ACTIVE = 'active',
+  PENDING = 'pending', // onboarding / verificação
+  SUSPENDED = 'suspended', // moderação
+  DELETED = 'deleted', // soft delete
+}
