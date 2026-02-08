@@ -23,6 +23,11 @@ routesProfile.patch(
   validate(profileUpdateSchema),
   patchProfileController,
 );
-routesProfile.delete(PROFILE_BASE_PATH, authMiddleware(), deleteProfileController);
+routesProfile.delete(
+  PROFILE_BASE_PATH,
+  authMiddleware(),
+  validate(profileDataSchema, (_req, res) => res.locals.user),
+  deleteProfileController,
+);
 
 export default routesProfile;

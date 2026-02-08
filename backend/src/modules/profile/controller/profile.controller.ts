@@ -8,6 +8,7 @@ import {
 } from '../service/profile.service';
 import logger from '../../../utils/log/logger';
 import { asyncHandler } from '../../../utils/asyncHandler';
+import { clearCookieAuth } from '../../auth/services/logout.service';
 
 export const getProfileController = asyncHandler(async (req: Request, res: Response) => {
   const userData = res.locals.validated;
@@ -26,27 +27,17 @@ export const patchProfileController = asyncHandler(async (req: Request, res: Res
   await patchProfileService(userData, user.user_id);
 
   logger.info(`Atualizacao realizada com sucesso. ID: ${user.user_id}`);
-  res.status(HttpStatus.OK).json({});
+  res.status(HttpStatus.OK).json({ success: true });
   return;
 });
 
-export const deleteProfileController = async (req: Request, res: Response) => {
-  try {
-    const user = res.locals.user;
-    const userData = profileDataSchema.safeParse(user);
+export const deleteProfileController = asyncHandler(async (req: Request, res: Response) => {
+  const userData = res.locals.validated;
 
-    if (!userData.success) {
-      logger.error(`Dados cadastrais incorretos ou faltando. ${userData.error}`);
-      res.status(HttpStatus.BAD_REQUEST).json({ error: 'Informações incorretas ou faltando.' });
-      return;
-    }
-    await deleteProfileService(userData.data);
+  await deleteProfileService(userData);
+  clearCookieAuth(req, res);
 
-    logger.info(`Usuário excluido com sucesso. ID: ${user.user_id}`);
-    res.status(HttpStatus.OK).json({});
-  } catch (error: any) {
-    logger.error(`${error}`);
-    res.status(HttpStatus.BAD_REQUEST).json({ error: error.message });
-  }
+  logger.info(`Usuário excluido com sucesso. ID: ${userData.user_id}`);
+  res.status(HttpStatus.OK).json({ success: true });
   return;
-};
+});
