@@ -10,7 +10,7 @@ describe('Testar edit profile', () => {
     const { token } = await generateToken();
 
     const response = await request(app)
-      .get('/profile')
+      .get('/api/profile')
       .set('Cookie', [`auth=${token}`]);
     expect(response.status).toBe(HttpStatus.OK);
     expect(response.body.message.authUser.email).toBeDefined();
@@ -25,7 +25,7 @@ describe('Testar edit profile', () => {
       },
     );
     const response = await request(app)
-      .get('/profile')
+      .get('/api/profile')
       .set('Cookie', [`auth=${token}`]);
     expect(response.status).toBe(HttpStatus.BAD_REQUEST);
     expect(response.body.error).toBe('Erro ao pesquisar usuário.');
@@ -36,7 +36,7 @@ describe('Testar edit profile', () => {
     const data = { ...authUser, ...dataUser };
 
     const response = await request(app)
-      .patch('/profile')
+      .patch('/api/profile')
       .set('Cookie', [`auth=${token}`])
       .send(data);
     expect(response.status).toBe(HttpStatus.OK);
@@ -48,7 +48,7 @@ describe('Testar edit profile', () => {
     delete dataUser.name;
     const data = { ...authUser, ...dataUser };
     const response = await request(app)
-      .patch('/profile')
+      .patch('/api/profile')
       .set('Cookie', [`auth=${token}`])
       .send(data);
     expect(response.status).toBe(HttpStatus.BAD_REQUEST);
@@ -56,7 +56,7 @@ describe('Testar edit profile', () => {
   });
 
   it('Deve retornar 200 OK sem corpo', async () => {
-    await request(app).post('/signup').send({
+    await request(app).post('/api/signup').send({
       type: 'company',
       email: 'testecompany2@teste.com',
       name: 'Compania teste',
@@ -91,7 +91,7 @@ describe('Testar edit profile', () => {
       },
     );
     const response = await request(app)
-      .delete('/profile')
+      .delete('/api/profile')
       .set('Cookie', [`auth=${token}`])
       .send({ id: authUser.userID, type: dataUser.type });
     expect(response.status).toBe(HttpStatus.OK);
@@ -99,7 +99,7 @@ describe('Testar edit profile', () => {
   });
 
   it('Deve retornar 400 devido ao ID não existir', async () => {
-    await request(app).post('/signup').send({
+    await request(app).post('/api/signup').send({
       type: 'company',
       email: 'testecompany4@teste.com',
       name: 'Compania teste',
@@ -122,7 +122,7 @@ describe('Testar edit profile', () => {
       expiresIn: 5 * 60,
     });
     const response = await request(app)
-      .delete('/profile')
+      .delete('/api/profile')
       .set('Cookie', [`auth=${token}`]);
 
     expect(response.status).toBe(HttpStatus.BAD_REQUEST);

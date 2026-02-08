@@ -9,7 +9,7 @@ describe('Testar auth', () => {
     const { token } = await generateToken();
 
     const response = await request(app)
-      .get('/teste')
+      .get('/api/teste')
       .set('Cookie', [`auth=${token}`]);
 
     expect(response.status).toBe(HttpStatus.OK);
@@ -17,7 +17,7 @@ describe('Testar auth', () => {
   });
 
   it('Deve retornar "Usuário não autorizado" por falta de token', async () => {
-    const response = await request(app).get('/teste');
+    const response = await request(app).get('/api/teste');
 
     expect(response.status).toBe(HttpStatus.UNAUTHORIZED);
     expect(response.body.error).toBe('Não autorizado.');
@@ -29,7 +29,7 @@ describe('Testar auth', () => {
     });
 
     const response = await request(app)
-      .get('/teste')
+      .get('/api/teste')
       .set('Cookie', [`auth=${token}`]);
 
     expect(response.status).toBe(HttpStatus.UNAUTHORIZED);

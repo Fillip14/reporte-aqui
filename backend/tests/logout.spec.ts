@@ -10,7 +10,7 @@ describe('Testar logout', () => {
     });
 
     const response = await request(app)
-      .post('/logout')
+      .post('/api/logout')
       .set('Cookie', [`auth=${token}`]);
 
     expect(response.status).toBe(HttpStatus.OK);
@@ -18,7 +18,7 @@ describe('Testar logout', () => {
   });
 
   it('Deve retornar Sessão nao encontrada.', async () => {
-    const response = await request(app).post('/logout');
+    const response = await request(app).post('/api/logout');
 
     expect(response.status).toBe(HttpStatus.BAD_REQUEST);
     expect(response.body.error).toBe('Sessão não encontrada.');

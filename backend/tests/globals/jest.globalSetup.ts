@@ -3,7 +3,7 @@ import request from 'supertest';
 
 export default async () => {
   try {
-    await request(app).post('/signup').send({
+    await request(app).post('/api/signup').send({
       type: 'company',
       email: 'testecompany@teste.com',
       name: 'Compania teste',

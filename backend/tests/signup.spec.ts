@@ -4,7 +4,7 @@ import request from 'supertest';
 
 describe('Testar signup', () => {
   it('Deve retornar cadastro com sucesso para individual', async () => {
-    const response = await request(app).post('/signup').send({
+    const response = await request(app).post('/api/signup').send({
       type: 'individual',
       email: 'testeindividual1234@teste.com',
       name: 'dashidjoa',
@@ -24,7 +24,7 @@ describe('Testar signup', () => {
   });
 
   it('Deve retornar cadastro com sucesso para company', async () => {
-    const response = await request(app).post('/signup').send({
+    const response = await request(app).post('/api/signup').send({
       type: 'company',
       email: 'testecompany1234@teste.com',
       name: 'dashidjoa',
@@ -44,7 +44,7 @@ describe('Testar signup', () => {
   });
 
   it('Deve retornar erro no cadastro por falta de informação', async () => {
-    const response = await request(app).post('/signup').send({
+    const response = await request(app).post('/api/signup').send({
       type: 'company',
       email: 'testecompany@teste.com',
       name: 'dashidjoa',
@@ -64,7 +64,7 @@ describe('Testar signup', () => {
   });
 
   it('Deve retornar cadastro ja existe por ser mesmo document', async () => {
-    const response = await request(app).post('/signup').send({
+    const response = await request(app).post('/api/signup').send({
       type: 'company',
       email: 'testecompany@teste.com',
       name: 'dashidjoa',
@@ -84,7 +84,7 @@ describe('Testar signup', () => {
   });
 
   it('Deve retornar cadastro ja existe por ser mesmo email', async () => {
-    const response = await request(app).post('/signup').send({
+    const response = await request(app).post('/api/signup').send({
       type: 'company',
       email: 'testecompany@teste.com',
       name: 'dashidjoa',
@@ -104,7 +104,7 @@ describe('Testar signup', () => {
   });
 
   it('Deve retornar cadastro ja existe por document ja estar cadastrado.', async () => {
-    const response = await request(app).post('/signup').send({
+    const response = await request(app).post('/api/signup').send({
       document: '12345678912123',
     });
 
