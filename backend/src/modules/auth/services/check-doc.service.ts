@@ -26,13 +26,6 @@ export const checkDocService = async (document: string) => {
           status,
           suggestedAction: 'contact_support',
         };
-
-      case AccountStatus.DELETED:
-        return {
-          exists: true,
-          status,
-          suggestedAction: 'reactivate',
-        };
     }
   }
   return {
