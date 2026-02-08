@@ -8,7 +8,7 @@ import { HttpStatus } from '../../../constants/api.constants';
 export const findUser = async (itemToSearch: SignIn) => {
   const { data: authData, error: authError } = await supabase
     .from(Table.AUTH)
-    .select(`${Column.USER_ID}, password_hash`)
+    .select(`${Column.USER_ID}, ${Column.PASSWORD_HASH}`)
     .eq(Column.PROVIDER, itemToSearch.provider)
     .eq(Column.PROVIDER_UID, itemToSearch.providerUid)
     .maybeSingle();
@@ -21,7 +21,7 @@ export const findUser = async (itemToSearch: SignIn) => {
 
   const { data: userData, error: userError } = await supabase
     .from(Table.USERS)
-    .select('type')
+    .select(Column.TYPE)
     .eq(Column.UUID, userID)
     .maybeSingle();
 

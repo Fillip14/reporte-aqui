@@ -10,6 +10,9 @@ export const enum Table {
 
 export const enum Column {
   UUID = 'uuid',
+  PASSWORD_HASH = 'password_hash',
+  TYPE = 'type',
+  STATUS = 'status',
   USER_ID = 'user_id',
   PROVIDER = 'provider',
   PROVIDER_UID = 'provider_uid',
