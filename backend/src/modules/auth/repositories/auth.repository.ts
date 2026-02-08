@@ -2,42 +2,50 @@ import { supabase } from '../../../database/supabaseClient';
 import { SignIn } from '../schemas/sign-in.schema';
 import { DocumentOrEmail, SignUp } from '../schemas/sign-up.schema';
 import { Table, Column, AccountStatus } from '../../../constants/database.constants';
+import { AppError } from '../../../errors/AppError';
+import { HttpStatus } from '../../../constants/api.constants';
 
 export const findUser = async (itemToSearch: SignIn) => {
-  const { data: authUser, error: findError } = await supabase
+  const { data: authData, error: authError } = await supabase
     .from(Table.AUTH)
     .select(`${Column.USER_ID}, password_hash`)
     .eq(Column.PROVIDER, itemToSearch.provider)
     .eq(Column.PROVIDER_UID, itemToSearch.providerUid)
-    .single();
+    .maybeSingle();
 
-  if (findError) throw new Error('Erro ao pesquisar cadastro.');
+  if (authError)
+    throw new AppError('Erro ao pesquisar cadastro.', HttpStatus.INTERNAL_SERVER_ERROR);
+  if (!authData) throw new AppError('Usuário não encontrado.', HttpStatus.NOT_FOUND);
 
-  const userID = authUser[Column.USER_ID];
+  const userID = authData[Column.USER_ID];
 
-  const { data: dataUser, error: userError } = await supabase
+  const { data: userData, error: userError } = await supabase
     .from(Table.USERS)
     .select('type')
     .eq(Column.UUID, userID)
-    .single();
+    .maybeSingle();
 
-  if (userError) throw new Error('Erro ao pesquisar cadastro.');
+  if (userError)
+    throw new AppError('Erro ao pesquisar cadastro.', HttpStatus.INTERNAL_SERVER_ERROR);
+  if (!userData) throw new AppError('Usuário não encontrado.', HttpStatus.NOT_FOUND);
 
-  return { user_id: authUser.user_id, password_hash: authUser.password_hash, type: dataUser.type };
+  return { user_id: authData.user_id, password_hash: authData.password_hash, type: userData.type };
 };
 
 export const findRegisteredUser = async (
   value: DocumentOrEmail['value'],
   field: DocumentOrEmail['field'],
 ) => {
-  const { data: usersData, error: usersError } = await supabase
+  const { data: userData, error: userError } = await supabase
     .from(Table.USERS)
     .select('*')
     .eq(field, value);
 
-  if (usersError) throw new Error(`Erro ao verificar ${field}.`);
+  if (userError)
+    throw new AppError('Erro ao pesquisar cadastro.', HttpStatus.INTERNAL_SERVER_ERROR);
+  if (!userData) throw new AppError('Usuário não encontrado.', HttpStatus.NOT_FOUND);
 
-  return usersData;
+  return userData;
 };
 
 export const create = async (userData: SignUp, existingUserId?: string): Promise<string> => {
@@ -54,9 +62,8 @@ export const create = async (userData: SignUp, existingUserId?: string): Promise
         })
         .eq(Column.UUID, existingUserId);
 
-      if (updateUserError) {
-        throw new Error('Erro ao restaurar usuário.');
-      }
+      if (updateUserError)
+        throw new AppError('Erro ao restaurar usuário.', HttpStatus.INTERNAL_SERVER_ERROR);
 
       userID = existingUserId;
     } else {
@@ -71,7 +78,8 @@ export const create = async (userData: SignUp, existingUserId?: string): Promise
         .select(Column.UUID)
         .single();
 
-      if (userInsertError) throw new Error('Erro ao cadastrar no users.');
+      if (userInsertError)
+        throw new AppError('Erro ao cadastrar no users.', HttpStatus.INTERNAL_SERVER_ERROR);
 
       userID = newUser.uuid;
     }
@@ -86,7 +94,8 @@ export const create = async (userData: SignUp, existingUserId?: string): Promise
       })
       .select();
 
-    if (authInsertError) throw new Error('Erro ao cadastrar no auth.');
+    if (authInsertError)
+      throw new AppError('Erro ao cadastrar no auth.', HttpStatus.INTERNAL_SERVER_ERROR);
 
     const { data: newProfile, error: profileInsertError } = await supabase
       .from(Table.PROFILES)
@@ -103,7 +112,8 @@ export const create = async (userData: SignUp, existingUserId?: string): Promise
       })
       .select();
 
-    if (profileInsertError) throw new Error('Erro ao cadastrar no profile.');
+    if (profileInsertError)
+      throw new AppError('Erro ao cadastrar no profile.', HttpStatus.INTERNAL_SERVER_ERROR);
     return newProfile[0].userID;
   } catch (error) {
     //SOFT DELETE
