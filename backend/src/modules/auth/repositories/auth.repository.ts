@@ -21,7 +21,7 @@ export const findUser = async (itemToSearch: SignIn) => {
 
   const { data: userData, error: userError } = await supabase
     .from(Table.USERS)
-    .select(Column.TYPE)
+    .select(`${Column.TYPE}, ${Column.STATUS}`)
     .eq(Column.UUID, userID)
     .maybeSingle();
 
@@ -29,7 +29,12 @@ export const findUser = async (itemToSearch: SignIn) => {
     throw new AppError('Erro ao pesquisar cadastro.', HttpStatus.INTERNAL_SERVER_ERROR);
   if (!userData) throw new AppError('Usuário não encontrado.', HttpStatus.NOT_FOUND);
 
-  return { user_id: authData.user_id, password_hash: authData.password_hash, type: userData.type };
+  return {
+    user_id: authData.user_id,
+    password_hash: authData.password_hash,
+    type: userData.type,
+    status: userData.status,
+  };
 };
 
 export const findRegisteredUser = async (
@@ -48,41 +53,23 @@ export const findRegisteredUser = async (
   return userData;
 };
 
-export const create = async (userData: SignUp, existingUserId?: string): Promise<string> => {
-  let userID: string;
+export const create = async (userData: SignUp): Promise<string> => {
   try {
-    if (existingUserId) {
-      const { error: updateUserError } = await supabase
-        .from(Table.USERS)
-        .update({
-          type: userData.type,
-          status: AccountStatus.ACTIVE,
-          email: userData.email,
-          document: userData.document,
-        })
-        .eq(Column.UUID, existingUserId);
+    const { data: newUser, error: userInsertError } = await supabase
+      .from(Table.USERS)
+      .insert({
+        type: userData.type,
+        status: AccountStatus.ACTIVE,
+        email: userData.email,
+        document: userData.document,
+      })
+      .select(Column.UUID)
+      .single();
 
-      if (updateUserError)
-        throw new AppError('Erro ao restaurar usuário.', HttpStatus.INTERNAL_SERVER_ERROR);
+    if (userInsertError)
+      throw new AppError('Erro ao cadastrar no users.', HttpStatus.INTERNAL_SERVER_ERROR);
 
-      userID = existingUserId;
-    } else {
-      const { data: newUser, error: userInsertError } = await supabase
-        .from(Table.USERS)
-        .insert({
-          type: userData.type,
-          status: AccountStatus.ACTIVE,
-          email: userData.email,
-          document: userData.document,
-        })
-        .select(Column.UUID)
-        .single();
-
-      if (userInsertError)
-        throw new AppError('Erro ao cadastrar no users.', HttpStatus.INTERNAL_SERVER_ERROR);
-
-      userID = newUser.uuid;
-    }
+    const userID = newUser.uuid;
 
     const { error: authInsertError } = await supabase
       .from(Table.AUTH)

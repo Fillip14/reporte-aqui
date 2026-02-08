@@ -9,51 +9,13 @@ export const registerUserService = async (userData: SignUp) => {
   const userByDocument = await findRegisteredUser(userData.document, 'document');
   const userByEmail = await findRegisteredUser(userData.email, 'email');
 
-  const userFromDocument = userByDocument?.[0];
-  const userFromEmail = userByEmail?.[0];
+  if (userByDocument[0])
+    throw new AppError('Documento ja cadastrado.', HttpStatus.CONFLICT, { field: 'document' });
 
-  if (userFromEmail && !userFromDocument)
+  if (userByEmail[0])
     throw new AppError('Email ja cadastrado.', HttpStatus.CONFLICT, { field: 'email' });
-
-  if (userFromDocument && userFromEmail) {
-    if (userFromDocument.uuid !== userFromEmail.uuid)
-      throw new AppError('CPF e email pertencem a contas diferentes.', HttpStatus.CONFLICT, {
-        error: 'CPF e email pertencem a contas diferentes.',
-      });
-  }
-
-  const existingUser = userFromDocument ?? userFromEmail;
-
-  if (existingUser) {
-    const status = existingUser.status;
-
-    switch (status) {
-      case AccountStatus.ACTIVE:
-        return {
-          type: 'EXISTS',
-          status: status,
-          suggestedAction: 'login',
-        };
-
-      case AccountStatus.PENDING:
-      case AccountStatus.SUSPENDED:
-        return {
-          type: 'EXISTS',
-          status: status,
-          suggestedAction: 'contact_support',
-        };
-
-      case AccountStatus.DELETED:
-        break;
-    }
-  }
 
   userData.password = await bcrypt.hash(userData.password, 10);
 
-  const userRegistered = await create(userData, existingUser?.uuid);
-
-  return {
-    type: 'CREATED',
-    userID: userRegistered,
-  };
+  return await create(userData);
 };

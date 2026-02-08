@@ -6,18 +6,10 @@ import { asyncHandler } from '../../../utils/asyncHandler';
 export const registerController = asyncHandler(async (req: Request, res: Response) => {
   const userDataValidated = res.locals.validated;
 
-  const result = await registerUserService(userDataValidated);
-
-  if (result.type === 'EXISTS') {
-    return res.status(HttpStatus.OK).json({
-      exists: true,
-      status: result.status,
-      suggestedAction: result.suggestedAction,
-    });
-  }
+  const userRegistered = await registerUserService(userDataValidated);
 
   return res.status(HttpStatus.CREATED).json({
     success: true,
-    userID: result.userID,
+    userID: userRegistered,
   });
 });
