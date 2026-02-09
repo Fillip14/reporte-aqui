@@ -4,15 +4,15 @@ import { AppError } from '../../../errors/AppError';
 import { HttpStatus } from '../../../constants/api.constants';
 import { SignUp } from '../../auth/schemas/sign-up.schema';
 
-export const findUser = async (columns: string, field: string, value: string): Promise<any[]> => {
+export const findUser = async (field: string, value: string) => {
   const { data: userData, error: userError } = await supabase
     .from(Table.USERS)
-    .select(`${columns}`)
-    .eq(field, value);
+    .select('*')
+    .eq(field, value)
+    .maybeSingle();
 
   if (userError)
     throw new AppError('Erro ao pesquisar cadastro.', HttpStatus.INTERNAL_SERVER_ERROR);
-  if (!userData) throw new AppError('Usuário não encontrado.', HttpStatus.NOT_FOUND);
 
   return userData;
 };
@@ -33,4 +33,30 @@ export const createNewUser = async (userData: SignUp): Promise<string> => {
     throw new AppError('Erro ao cadastrar no users.', HttpStatus.INTERNAL_SERVER_ERROR);
 
   return newUser.uuid;
+};
+
+export const patchUser = async (email: string, userID: string) => {
+  const { error: userError } = await supabase
+    .from(Table.USERS)
+    .update({ email })
+    .eq(Column.UUID, userID);
+
+  if (userError) throw new AppError('Erro ao atualizar usuário.', HttpStatus.INTERNAL_SERVER_ERROR);
+
+  return;
+};
+
+export const deleteUser = async (userID: string) => {
+  const { error: userError } = await supabase
+    .from(Table.USERS)
+    .update({ status: AccountStatus.DELETED, document: null, email: null })
+    .eq(Column.UUID, userID);
+
+  if (userError)
+    throw new AppError('Erro ao excluir usuario.', HttpStatus.BAD_REQUEST, {
+      success: false,
+      suggestedAction: 'delete again',
+    });
+
+  return;
 };
