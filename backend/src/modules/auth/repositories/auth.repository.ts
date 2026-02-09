@@ -15,7 +15,6 @@ export const findAuth = async (itemToSearch: SignIn) => {
 
   if (authError)
     throw new AppError('Erro ao pesquisar cadastro.', HttpStatus.INTERNAL_SERVER_ERROR);
-  if (!authData) throw new AppError('Usuário não encontrado.', HttpStatus.NOT_FOUND);
 
   return authData;
 };
