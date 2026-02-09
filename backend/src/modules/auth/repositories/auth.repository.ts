@@ -33,3 +33,15 @@ export const createNewAuth = async (userID: string, userData: SignUp) => {
   if (authInsertError)
     throw new AppError('Erro ao cadastrar no auth.', HttpStatus.INTERNAL_SERVER_ERROR);
 };
+
+export const deleteAuth = async (userID: string) => {
+  const { error: authError } = await supabase.from(Table.AUTH).delete().eq(Column.USER_ID, userID);
+
+  if (authError)
+    throw new AppError('Erro ao excluir auth.', HttpStatus.BAD_REQUEST, {
+      success: false,
+      suggestedAction: 'delete again',
+    });
+
+  return;
+};
