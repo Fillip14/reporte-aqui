@@ -9,15 +9,17 @@ export const enum Table {
 }
 
 export const enum Column {
+  ALL = '*',
   UUID = 'uuid',
-  PASSWORD_HASH = 'password_hash',
   TYPE = 'type',
   STATUS = 'status',
+  EMAIL = 'email',
+  DOCUMENT = 'document',
   USER_ID = 'user_id',
   PROVIDER = 'provider',
   PROVIDER_UID = 'provider_uid',
+  PASSWORD_HASH = 'password_hash',
   ID_REPORTS = 'id_reports',
-  DOCUMENT = 'document',
 }
 
 export const enum AccountStatus {
