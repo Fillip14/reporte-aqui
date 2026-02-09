@@ -11,10 +11,10 @@ export const registerUserService = async (userData: SignUp) => {
   const userByDocument = await findUserService(Column.DOCUMENT, userData.document);
   const userByEmail = await findUserService(Column.EMAIL, userData.email);
 
-  if (userByDocument[0])
+  if (userByDocument)
     throw new AppError('Documento ja cadastrado.', HttpStatus.CONFLICT, { field: 'document' });
 
-  if (userByEmail[0])
+  if (userByEmail)
     throw new AppError('Email ja cadastrado.', HttpStatus.CONFLICT, { field: 'email' });
 
   userData.password = await bcrypt.hash(userData.password, 10);

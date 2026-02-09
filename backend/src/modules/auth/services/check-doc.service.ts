@@ -8,8 +8,8 @@ export const checkDocService = async (document: string) => {
 
   const userData = await findUserService(Column.DOCUMENT, document, [Column.STATUS]);
 
-  if (!userData || userData.length > 0) {
-    const status = userData[0].status;
+  if (userData) {
+    const status = userData.status;
 
     switch (status) {
       case AccountStatus.ACTIVE:
