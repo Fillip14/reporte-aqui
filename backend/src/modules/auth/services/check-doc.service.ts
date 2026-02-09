@@ -1,12 +1,12 @@
 import { HttpStatus } from '../../../constants/api.constants';
-import { AccountStatus } from '../../../constants/database.constants';
-import { findRegisteredUser } from '../repositories/auth.repository';
+import { AccountStatus, Column } from '../../../constants/database.constants';
+import { findUserService } from '../../users/service/user.service';
 import { AppError } from '../../../errors/AppError';
 
 export const checkDocService = async (document: string) => {
   if (!document) throw new AppError('Documento não informado.', HttpStatus.BAD_REQUEST);
 
-  const userData = await findRegisteredUser(document, 'document');
+  const userData = await findUserService(Column.DOCUMENT, document, [Column.STATUS]);
 
   if (!userData || userData.length > 0) {
     const status = userData[0].status;

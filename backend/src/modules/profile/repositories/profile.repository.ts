@@ -3,6 +3,7 @@ import { ProfileData, ProfileUpdate } from '../schemas/profile.schema';
 import { Column, Table, AccountStatus } from '../../../constants/database.constants';
 import { AppError } from '../../../errors/AppError';
 import { HttpStatus } from '../../../constants/api.constants';
+import { SignUp } from '../../auth/schemas/sign-up.schema';
 
 export const findUserByID = async (user: ProfileData) => {
   const { data: userData, error: userError } = await supabase
@@ -82,4 +83,24 @@ export const deleteUser = async (user: ProfileData) => {
       suggestedAction: 'delete again',
     });
   return;
+};
+
+export const createNewProfile = async (userID: string, userData: SignUp) => {
+  const { data: newProfile, error: profileInsertError } = await supabase
+    .from(Table.PROFILES)
+    .insert({
+      user_id: userID,
+      name: userData.name,
+      country: userData.country,
+      state: userData.state,
+      city: userData.city,
+      neighborhood: userData.neighborhood,
+      street: userData.street,
+      number: userData.number,
+      zipcode: userData.zipcode,
+    })
+    .select();
+
+  if (profileInsertError)
+    throw new AppError('Erro ao cadastrar no profile.', HttpStatus.INTERNAL_SERVER_ERROR);
 };

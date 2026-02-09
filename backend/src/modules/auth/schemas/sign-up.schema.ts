@@ -49,8 +49,3 @@ export const signUpSchema = z
   });
 
 export type SignUp = z.infer<typeof signUpSchema>;
-
-export type DocumentOrEmail = {
-  value: string;
-  field: 'document' | 'email';
-};

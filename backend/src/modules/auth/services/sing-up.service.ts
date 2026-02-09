@@ -1,13 +1,15 @@
-import { AccountStatus } from '../../../constants/database.constants';
-import { findRegisteredUser, create } from '../repositories/auth.repository';
+import { createAuthService } from './auth.service';
+import { createUserService, findUserService } from '../../users/service/user.service';
+import { createProfileService } from '../../profile/service/profile.service';
 import { HttpStatus } from '../../../constants/api.constants';
 import { AppError } from '../../../errors/AppError';
 import { SignUp } from '../schemas/sign-up.schema';
 import bcrypt from 'bcrypt';
+import { Column } from '../../../constants/database.constants';
 
 export const registerUserService = async (userData: SignUp) => {
-  const userByDocument = await findRegisteredUser(userData.document, 'document');
-  const userByEmail = await findRegisteredUser(userData.email, 'email');
+  const userByDocument = await findUserService(Column.DOCUMENT, userData.document);
+  const userByEmail = await findUserService(Column.EMAIL, userData.email);
 
   if (userByDocument[0])
     throw new AppError('Documento ja cadastrado.', HttpStatus.CONFLICT, { field: 'document' });
@@ -17,5 +19,13 @@ export const registerUserService = async (userData: SignUp) => {
 
   userData.password = await bcrypt.hash(userData.password, 10);
 
-  return await create(userData);
+  try {
+    const userID = await createUserService(userData);
+    await createAuthService(userID, userData);
+    await createProfileService(userID, userData);
+
+    return userID;
+  } catch (error) {
+    throw new AppError('Erro ao cadastrar usuário.', HttpStatus.INTERNAL_SERVER_ERROR);
+  }
 };
