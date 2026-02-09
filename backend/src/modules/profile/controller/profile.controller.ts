@@ -1,22 +1,24 @@
 import { Request, Response } from 'express';
-import { profileDataSchema } from '../schemas/profile.schema';
 import { HttpStatus } from '../../../constants/api.constants';
 import {
   deleteProfileService,
-  getProfileService,
+  findProfileService,
   patchProfileService,
 } from '../service/profile.service';
 import logger from '../../../utils/log/logger';
 import { asyncHandler } from '../../../utils/asyncHandler';
 import { clearCookieAuth } from '../../auth/services/logout.service';
+import { findUserService } from '../../users/service/user.service';
+import { Column } from '../../../constants/database.constants';
 
 export const getProfileController = asyncHandler(async (req: Request, res: Response) => {
-  const userData = res.locals.validated;
+  const user = res.locals.validated;
 
-  const data = await getProfileService(userData);
+  const userData = await findUserService(Column.UUID, user.user_id, [Column.EMAIL]);
+  const profileData = await findProfileService(Column.USER_ID, user.user_id);
 
-  logger.info(`Busca realizada com sucesso. ID: ${userData.user_id}`);
-  res.status(HttpStatus.OK).json({ message: data });
+  logger.info(`Busca realizada com sucesso. ID: ${user.user_id}`);
+  res.status(HttpStatus.OK).json({ message: { userData, profileData } });
   return;
 });
 
