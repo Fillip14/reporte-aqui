@@ -1,17 +1,14 @@
 import { Request, Response } from 'express';
 import { HttpStatus } from '../../../constants/api.constants';
-import {
-  deleteProfileService,
-  findProfileService,
-  patchProfileService,
-} from '../services/profile.service';
+import { deleteAccountService, patchAccountService } from '../services/account.service';
 import logger from '../../../utils/log/logger';
 import { asyncHandler } from '../../../utils/asyncHandler';
 import { clearCookieAuth } from '../../auth/services/logout.service';
 import { findUserService } from '../../users/services/user.service';
 import { Column } from '../../../constants/database.constants';
+import { findProfileService } from '../../profile/services/profile.service';
 
-export const getProfileController = asyncHandler(async (req: Request, res: Response) => {
+export const getAccountController = asyncHandler(async (req: Request, res: Response) => {
   const user = res.locals.validated;
 
   const userData = await findUserService(Column.UUID, user.user_id, [Column.EMAIL]);
@@ -22,21 +19,21 @@ export const getProfileController = asyncHandler(async (req: Request, res: Respo
   return;
 });
 
-export const patchProfileController = asyncHandler(async (req: Request, res: Response) => {
+export const patchAccountController = asyncHandler(async (req: Request, res: Response) => {
   const user = res.locals.user;
   const userData = res.locals.validated;
 
-  await patchProfileService(userData, user.user_id);
+  await patchAccountService(userData, user.user_id);
 
   logger.info(`Atualizacao realizada com sucesso. ID: ${user.user_id}`);
   res.status(HttpStatus.OK).json({ success: true });
   return;
 });
 
-export const deleteProfileController = asyncHandler(async (req: Request, res: Response) => {
+export const deleteAccountController = asyncHandler(async (req: Request, res: Response) => {
   const userData = res.locals.validated;
 
-  await deleteProfileService(userData);
+  await deleteAccountService(userData);
   clearCookieAuth(req, res);
 
   logger.info(`Usuário excluido com sucesso. ID: ${userData.user_id}`);

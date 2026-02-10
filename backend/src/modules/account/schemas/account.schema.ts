@@ -1,12 +1,12 @@
 import { z } from 'zod';
 import { UserType } from '../../../constants/api.constants';
 
-export const profileDataSchema = z.object({
+export const accountUserSchema = z.object({
   user_id: z.string().min(1),
   type: z.nativeEnum(UserType),
 });
 
-export const profileUpdateSchema = z.object({
+export const accountUpdateSchema = z.object({
   email: z.string().email().min(1),
   name: z.string().min(1),
   country: z.string().min(1),
@@ -19,6 +19,6 @@ export const profileUpdateSchema = z.object({
   URLprofileImage: z.string().url().optional().nullable(),
 });
 
-export type ProfileUpdate = z.infer<typeof profileUpdateSchema>;
+export type ProfileData = z.infer<typeof accountUserSchema>;
 
-export type ProfileData = z.infer<typeof profileDataSchema>;
+export type ProfileUpdate = z.infer<typeof accountUpdateSchema>;
