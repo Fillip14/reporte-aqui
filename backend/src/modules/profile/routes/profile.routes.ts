@@ -4,7 +4,7 @@ import {
   getProfileController,
   patchProfileController,
   deleteProfileController,
-} from '../controller/profile.controller';
+} from '../controllers/profile.controller';
 import { validate } from '../../../middlewares/validate-schema.middleware';
 import { profileDataSchema, profileUpdateSchema } from '../schemas/profile.schema';
 

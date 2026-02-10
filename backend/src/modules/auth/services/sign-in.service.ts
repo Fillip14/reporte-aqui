@@ -1,7 +1,7 @@
 import { HttpStatus } from '../../../constants/api.constants';
 import { AccountStatus, Column } from '../../../constants/database.constants';
 import { AppError } from '../../../errors/AppError';
-import { findUserService } from '../../users/service/user.service';
+import { findUserService } from '../../users/services/user.service';
 import { findAuthService } from './auth.service';
 import { SignIn } from '../schemas/sign-in.schema';
 import bcrypt from 'bcrypt';

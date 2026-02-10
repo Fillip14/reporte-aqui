@@ -1,6 +1,6 @@
 import { createAuthService } from './auth.service';
-import { createUserService, findUserService } from '../../users/service/user.service';
-import { createProfileService } from '../../profile/service/profile.service';
+import { createUserService, findUserService } from '../../users/services/user.service';
+import { createProfileService } from '../../profile/services/profile.service';
 import { HttpStatus } from '../../../constants/api.constants';
 import { AppError } from '../../../errors/AppError';
 import { SignUp } from '../schemas/sign-up.schema';

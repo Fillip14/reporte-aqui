@@ -1,6 +1,6 @@
 import { HttpStatus } from '../../../constants/api.constants';
 import { AccountStatus, Column } from '../../../constants/database.constants';
-import { findUserService } from '../../users/service/user.service';
+import { findUserService } from '../../users/services/user.service';
 import { AppError } from '../../../errors/AppError';
 
 export const checkDocService = async (document: string) => {

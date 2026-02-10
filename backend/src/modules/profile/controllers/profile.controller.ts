@@ -4,11 +4,11 @@ import {
   deleteProfileService,
   findProfileService,
   patchProfileService,
-} from '../service/profile.service';
+} from '../services/profile.service';
 import logger from '../../../utils/log/logger';
 import { asyncHandler } from '../../../utils/asyncHandler';
 import { clearCookieAuth } from '../../auth/services/logout.service';
-import { findUserService } from '../../users/service/user.service';
+import { findUserService } from '../../users/services/user.service';
 import { Column } from '../../../constants/database.constants';
 
 export const getProfileController = asyncHandler(async (req: Request, res: Response) => {

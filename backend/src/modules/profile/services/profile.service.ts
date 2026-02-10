@@ -2,7 +2,7 @@ import { HttpStatus } from '../../../constants/api.constants';
 import { AppError } from '../../../errors/AppError';
 import { SignUp } from '../../auth/schemas/sign-up.schema';
 import { deleteAuthService } from '../../auth/services/auth.service';
-import { deleteUserService, patchUserService } from '../../users/service/user.service';
+import { deleteUserService, patchUserService } from '../../users/services/user.service';
 import {
   patchProfile,
   createNewProfile,
