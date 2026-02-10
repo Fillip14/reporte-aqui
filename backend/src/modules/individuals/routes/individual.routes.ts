@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { authMiddleware } from '../../../middlewares/middleware';
+import { authMiddleware } from '../../../middlewares/auth.middleware';
 import { UserType } from '../../../constants/api.constants';
 import { registerReport, listReports } from '../controllers/individual.controller';
 import { uploadMiddlewareArray } from '../../../middlewares/storage.middleware';

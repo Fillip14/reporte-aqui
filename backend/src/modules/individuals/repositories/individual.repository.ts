@@ -1,16 +1,11 @@
 import { supabase } from '../../../database/supabaseClient';
 import { Report } from '../schemas/individual.schema';
 import mime from 'mime-types';
-import {
-  BUCKET,
-  TABLE_REPORTS,
-  COLUMN_ID_REPORTS,
-  COLUMN_USER_ID,
-} from '../../../constants/database.constants';
+import { BUCKET, Table, Column } from '../../../constants/database.constants';
 
 export const create = async (files: Express.Multer.File[], dataReport: Report, userID: string) => {
   const { data: newReport, error: reportError } = await supabase
-    .from(TABLE_REPORTS)
+    .from(Table.REPORTS)
     .insert({
       userID: userID,
       title: dataReport.title,
@@ -88,12 +83,12 @@ export const create = async (files: Express.Multer.File[], dataReport: Report, u
       const textValue = dataReport[`textDoc${i + 1}` as keyof typeof dataReport];
 
       const { data: updateDocsData, error: updateDocsError } = await supabase
-        .from(TABLE_REPORTS)
+        .from(Table.REPORTS)
         .update({
           [docField]: path,
           [textField]: textValue,
         })
-        .eq(COLUMN_ID_REPORTS, report.id_reports);
+        .eq(Column.ID_REPORTS, report.id_reports);
 
       if (updateDocsError)
         throw new Error(`Erro ao fazer update dos dados do DOC: ${updateDocsError.message}`);
@@ -115,9 +110,9 @@ export const create = async (files: Express.Multer.File[], dataReport: Report, u
 
 export const listReports = async (userID: string) => {
   const { data: reportsData, error: reportsError } = await supabase
-    .from(TABLE_REPORTS)
+    .from(Table.REPORTS)
     .select('*')
-    .eq(COLUMN_USER_ID, userID);
+    .eq(Column.USER_ID, userID);
 
   if (reportsError) throw new Error(`Erro ao listar report: ${reportsError.message}`);
   if (!reportsData) throw new Error('Erro ao listar reports.');
