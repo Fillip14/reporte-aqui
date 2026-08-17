@@ -1,4 +1,5 @@
 import { Prisma } from '@prisma/client';
+import type { UserRole } from '@prisma/client';
 import { prisma } from '../../lib/prisma.js';
 import type { CreateProblemInput, ListProblemsQuery } from './problems.validation.js';
 import { publicMediaUrl } from '../../lib/r2.js';
@@ -91,4 +92,25 @@ async function votedIdsFor(viewerId: string | undefined, problemIds: string[]): 
     select: { problemId: true },
   });
   return new Set(votes.map((v) => v.problemId));
+}
+
+export async function cancelProblem(problemId: string, userId: string) {
+  const problem = await prisma.problem.findUnique({ where: { id: problemId } });
+  if (!problem) throw new ProblemNotFoundError();
+  if (problem.authorId !== userId) throw new NotProblemAuthorError();
+  if (problem.status !== 'open') throw new InvalidProblemStateError();
+
+  return prisma.problem.update({ where: { id: problemId }, data: { status: 'cancelled' } });
+}
+
+export async function resolveProblem(problemId: string, actingUserId: string, actingUserRole: UserRole) {
+  const problem = await prisma.problem.findUnique({ where: { id: problemId } });
+  if (!problem) throw new ProblemNotFoundError();
+  if (problem.authorId !== actingUserId && actingUserRole !== 'admin') throw new NotProblemAuthorError();
+  if (problem.status !== 'open') throw new InvalidProblemStateError();
+
+  return prisma.problem.update({
+    where: { id: problemId },
+    data: { status: 'resolved', resolvedAt: new Date(), resolvedById: actingUserId },
+  });
 }

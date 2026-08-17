@@ -138,3 +138,96 @@ describe('GET /problems/:id', () => {
     expect(res.body.media[0].url).toContain(res.body.media[0].objectKey);
   });
 });
+
+async function createAdminToken() {
+  const admin = await prisma.user.create({
+    data: { email: 'admin@example.com', passwordHash: await hashPassword('irrelevant'), role: 'admin' },
+  });
+  return signAccessToken({ sub: admin.id, role: 'admin' });
+}
+
+describe('POST /problems/:id/cancel', () => {
+  beforeEach(async () => {
+    await resetDb();
+  });
+
+  it('lets the author cancel an open problem', async () => {
+    const { userId, token } = await createUserToken();
+    const problem = await createProblem(token, userId);
+
+    const res = await request(app)
+      .post(`/problems/${problem.id}/cancel`)
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.status).toBe('cancelled');
+  });
+
+  it('rejects cancellation by a non-author', async () => {
+    const { userId, token } = await createUserToken();
+    const problem = await createProblem(token, userId);
+    const { token: otherToken } = await createUserToken('other@example.com');
+
+    const res = await request(app)
+      .post(`/problems/${problem.id}/cancel`)
+      .set('Authorization', `Bearer ${otherToken}`);
+
+    expect(res.status).toBe(403);
+  });
+
+  it('rejects cancelling an already-cancelled problem', async () => {
+    const { userId, token } = await createUserToken();
+    const problem = await createProblem(token, userId);
+    await request(app).post(`/problems/${problem.id}/cancel`).set('Authorization', `Bearer ${token}`);
+
+    const res = await request(app)
+      .post(`/problems/${problem.id}/cancel`)
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(res.status).toBe(409);
+  });
+});
+
+describe('POST /problems/:id/resolve', () => {
+  beforeEach(async () => {
+    await resetDb();
+  });
+
+  it('lets the author resolve an open problem directly', async () => {
+    const { userId, token } = await createUserToken();
+    const problem = await createProblem(token, userId);
+
+    const res = await request(app)
+      .post(`/problems/${problem.id}/resolve`)
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.status).toBe('resolved');
+    expect(res.body.resolvedById).toBe(userId);
+  });
+
+  it('lets an admin resolve someone else\'s open problem', async () => {
+    const { userId, token } = await createUserToken();
+    const problem = await createProblem(token, userId);
+    const adminToken = await createAdminToken();
+
+    const res = await request(app)
+      .post(`/problems/${problem.id}/resolve`)
+      .set('Authorization', `Bearer ${adminToken}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.status).toBe('resolved');
+  });
+
+  it('rejects resolution by a non-author, non-admin user', async () => {
+    const { userId, token } = await createUserToken();
+    const problem = await createProblem(token, userId);
+    const { token: otherToken } = await createUserToken('other@example.com');
+
+    const res = await request(app)
+      .post(`/problems/${problem.id}/resolve`)
+      .set('Authorization', `Bearer ${otherToken}`);
+
+    expect(res.status).toBe(403);
+  });
+});

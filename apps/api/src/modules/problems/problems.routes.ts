@@ -8,5 +8,7 @@ const problemsRouter = Router();
 problemsRouter.post('/', requireAuth, problemsController.createProblem);
 problemsRouter.get('/', optionalAuth, problemsController.listProblems);
 problemsRouter.get('/:id', optionalAuth, problemsController.getProblem);
+problemsRouter.post('/:id/cancel', requireAuth, problemsController.cancelProblem);
+problemsRouter.post('/:id/resolve', requireAuth, problemsController.resolveProblem);
 
 export default problemsRouter;
