@@ -288,3 +288,57 @@ describe('POST /problems/:id/vote', () => {
     expect(res.status).toBe(409);
   });
 });
+
+describe('POST /problems/:id/resolution-proposals', () => {
+  beforeEach(async () => {
+    await resetDb();
+  });
+
+  it('lets a non-author propose a resolution and moves the problem to pending_verification', async () => {
+    const { userId, token } = await createUserToken();
+    const problem = await createProblem(token, userId);
+    const { userId: proposerId, token: proposerToken } = await createUserToken('vizinho@example.com');
+
+    const res = await request(app)
+      .post(`/problems/${problem.id}/resolution-proposals`)
+      .set('Authorization', `Bearer ${proposerToken}`)
+      .send({ objectKey: `${proposerId}/evidence.jpg` });
+
+    expect(res.status).toBe(201);
+    expect(res.body.status).toBe('pending');
+
+    const stored = await prisma.problem.findUniqueOrThrow({ where: { id: problem.id } });
+    expect(stored.status).toBe('pending_verification');
+  });
+
+  it('rejects the author proposing resolution of their own problem', async () => {
+    const { userId, token } = await createUserToken();
+    const problem = await createProblem(token, userId);
+
+    const res = await request(app)
+      .post(`/problems/${problem.id}/resolution-proposals`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ objectKey: `${userId}/evidence.jpg` });
+
+    expect(res.status).toBe(403);
+  });
+
+  it('rejects a second pending proposal for the same problem', async () => {
+    const { userId, token } = await createUserToken();
+    const problem = await createProblem(token, userId);
+    const { userId: firstProposerId, token: firstToken } = await createUserToken('primeiro@example.com');
+    const { userId: secondProposerId, token: secondToken } = await createUserToken('segundo@example.com');
+
+    await request(app)
+      .post(`/problems/${problem.id}/resolution-proposals`)
+      .set('Authorization', `Bearer ${firstToken}`)
+      .send({ objectKey: `${firstProposerId}/evidence.jpg` });
+
+    const res = await request(app)
+      .post(`/problems/${problem.id}/resolution-proposals`)
+      .set('Authorization', `Bearer ${secondToken}`)
+      .send({ objectKey: `${secondProposerId}/evidence.jpg` });
+
+    expect(res.status).toBe(409);
+  });
+});

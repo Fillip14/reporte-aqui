@@ -135,3 +135,23 @@ export async function toggleVote(problemId: string, userId: string): Promise<{ v
   await prisma.problemVote.create({ data: { problemId, userId } });
   return { voted: true };
 }
+
+export async function createResolutionProposal(problemId: string, proposedById: string, objectKey: string) {
+  const problem = await prisma.problem.findUnique({ where: { id: problemId } });
+  if (!problem) throw new ProblemNotFoundError();
+  if (problem.authorId === proposedById) throw new CannotActOnOwnProblemError();
+  if (problem.status !== 'open') throw new InvalidProblemStateError();
+
+  const existingPending = await prisma.resolutionProposal.findFirst({
+    where: { problemId, status: 'pending' },
+  });
+  if (existingPending) throw new PendingProposalExistsError();
+
+  const proposal = await prisma.resolutionProposal.create({
+    data: { problemId, proposedById, objectKey },
+  });
+
+  await prisma.problem.update({ where: { id: problemId }, data: { status: 'pending_verification' } });
+
+  return proposal;
+}

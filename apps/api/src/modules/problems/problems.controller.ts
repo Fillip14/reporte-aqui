@@ -2,9 +2,9 @@ import type { Response } from 'express';
 import type { AuthenticatedRequest } from '../../middleware/requireAuth.js';
 import { createProblemSchema } from './problems.validation.js';
 import * as problemsService from './problems.service.js';
-import { listProblemsQuerySchema } from './problems.validation.js';
+import { listProblemsQuerySchema, createResolutionProposalSchema } from './problems.validation.js';
 import { ProblemNotFoundError, NotProblemAuthorError, InvalidProblemStateError } from './problems.service.js';
-import { CannotActOnOwnProblemError } from './problems.service.js';
+import { CannotActOnOwnProblemError, PendingProposalExistsError } from './problems.service.js';
 
 export async function createProblem(req: AuthenticatedRequest, res: Response) {
   const parsed = createProblemSchema.safeParse(req.body);
@@ -69,6 +69,27 @@ export async function toggleVote(req: AuthenticatedRequest, res: Response) {
     if (err instanceof ProblemNotFoundError) return res.status(404).json({ error: 'problem_not_found' });
     if (err instanceof CannotActOnOwnProblemError) return res.status(403).json({ error: 'forbidden' });
     if (err instanceof InvalidProblemStateError) return res.status(409).json({ error: 'invalid_problem_state' });
+    throw err;
+  }
+}
+
+export async function createResolutionProposal(req: AuthenticatedRequest, res: Response) {
+  const parsed = createResolutionProposalSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({ error: 'invalid_input', details: parsed.error.flatten() });
+  }
+  try {
+    const proposal = await problemsService.createResolutionProposal(
+      req.params.id,
+      req.user!.id,
+      parsed.data.objectKey,
+    );
+    return res.status(201).json(proposal);
+  } catch (err) {
+    if (err instanceof ProblemNotFoundError) return res.status(404).json({ error: 'problem_not_found' });
+    if (err instanceof CannotActOnOwnProblemError) return res.status(403).json({ error: 'forbidden' });
+    if (err instanceof InvalidProblemStateError) return res.status(409).json({ error: 'invalid_problem_state' });
+    if (err instanceof PendingProposalExistsError) return res.status(409).json({ error: 'pending_proposal_exists' });
     throw err;
   }
 }

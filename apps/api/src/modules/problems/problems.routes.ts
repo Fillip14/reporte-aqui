@@ -11,5 +11,6 @@ problemsRouter.get('/:id', optionalAuth, problemsController.getProblem);
 problemsRouter.post('/:id/cancel', requireAuth, problemsController.cancelProblem);
 problemsRouter.post('/:id/resolve', requireAuth, problemsController.resolveProblem);
 problemsRouter.post('/:id/vote', requireAuth, problemsController.toggleVote);
+problemsRouter.post('/:id/resolution-proposals', requireAuth, problemsController.createResolutionProposal);
 
 export default problemsRouter;
