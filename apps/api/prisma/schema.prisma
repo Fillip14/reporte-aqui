@@ -1,0 +1,81 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  individual
+  company
+  admin
+}
+
+enum UserStatus {
+  active
+  deleted
+}
+
+enum CompanyVerificationStatus {
+  pending
+  approved
+  rejected
+}
+
+model User {
+  id           String     @id @default(uuid())
+  email        String     @unique
+  passwordHash String
+  role         UserRole
+  status       UserStatus @default(active)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  individualProfile IndividualProfile?
+  companyProfile    CompanyProfile?   @relation("CompanyOwner")
+  refreshTokens     RefreshToken[]
+  companiesVerified CompanyProfile[]  @relation("CompanyVerifiedBy")
+
+  @@map("users")
+}
+
+model IndividualProfile {
+  id       String @id @default(uuid())
+  userId   String @unique
+  fullName String
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("individual_profiles")
+}
+
+model CompanyProfile {
+  id                 String                     @id @default(uuid())
+  userId             String                     @unique
+  companyName        String
+  cnpj               String                     @unique
+  verificationStatus CompanyVerificationStatus  @default(pending)
+  verifiedAt         DateTime?
+  verifiedById       String?
+  rejectionReason    String?
+
+  user       User  @relation("CompanyOwner", fields: [userId], references: [id])
+  verifiedBy User? @relation("CompanyVerifiedBy", fields: [verifiedById], references: [id])
+
+  @@map("company_profiles")
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  createdAt DateTime  @default(now())
+  revokedAt DateTime?
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("refresh_tokens")
+}
