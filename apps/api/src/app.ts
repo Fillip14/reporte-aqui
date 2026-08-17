@@ -5,6 +5,7 @@ import authRouter from './modules/auth/auth.routes.js';
 import meRouter from './modules/me/me.routes.js';
 import adminRouter from './modules/admin/admin.routes.js';
 import mediaRouter from './modules/media/media.routes.js';
+import problemsRouter from './modules/problems/problems.routes.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
 export function createApp() {
@@ -21,6 +22,7 @@ export function createApp() {
   app.use('/me', meRouter);
   app.use('/admin', adminRouter);
   app.use('/media', mediaRouter);
+  app.use('/problems', problemsRouter);
 
   app.use(errorHandler);
 
