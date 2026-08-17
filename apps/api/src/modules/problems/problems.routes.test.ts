@@ -63,6 +63,17 @@ describe('POST /problems', () => {
     const stored = await prisma.problem.findUniqueOrThrow({ where: { id: res.body.id } });
     expect(stored.status).toBe('open');
   });
+
+  it('rejects a problem referencing another user\'s objectKey', async () => {
+    const { userId, token } = await createUserToken();
+    const { userId: otherUserId } = await createUserToken('other@example.com');
+    const body = { ...validProblemBody(userId), media: [{ objectKey: `${otherUserId}/photo.jpg`, mediaType: 'image' }] };
+
+    const res = await request(app).post('/problems').set('Authorization', `Bearer ${token}`).send(body);
+
+    expect(res.status).toBe(403);
+    expect(res.body.error).toBe('forbidden_object_key');
+  });
 });
 
 async function createProblem(token: string, authorId: string, overrides: Partial<ReturnType<typeof validProblemBody>> = {}) {
@@ -116,6 +127,33 @@ describe('GET /problems', () => {
     expect(res.body.items).toHaveLength(1);
     expect(res.body.total).toBe(2);
   });
+
+  it('shows hasVoted:true and voteCount for the voter\'s authenticated request', async () => {
+    const { userId, token } = await createUserToken();
+    const problem = await createProblem(token, userId);
+    const { token: voterToken } = await createUserToken('voter@example.com');
+    await request(app).post(`/problems/${problem.id}/vote`).set('Authorization', `Bearer ${voterToken}`);
+
+    const res = await request(app).get('/problems').set('Authorization', `Bearer ${voterToken}`);
+    expect(res.status).toBe(200);
+    const item = res.body.items.find((p: { id: string }) => p.id === problem.id);
+    expect(item.hasVoted).toBe(true);
+    expect(item.voteCount).toBe(1);
+  });
+
+  it('shows hasVoted:false for a non-voter authenticated request', async () => {
+    const { userId, token } = await createUserToken();
+    const problem = await createProblem(token, userId);
+    const { token: voterToken } = await createUserToken('voter@example.com');
+    await request(app).post(`/problems/${problem.id}/vote`).set('Authorization', `Bearer ${voterToken}`);
+    const { token: otherToken } = await createUserToken('other@example.com');
+
+    const res = await request(app).get('/problems').set('Authorization', `Bearer ${otherToken}`);
+    expect(res.status).toBe(200);
+    const item = res.body.items.find((p: { id: string }) => p.id === problem.id);
+    expect(item.hasVoted).toBe(false);
+    expect(item.voteCount).toBe(1);
+  });
 });
 
 describe('GET /problems/:id', () => {
@@ -136,6 +174,18 @@ describe('GET /problems/:id', () => {
     expect(res.status).toBe(200);
     expect(res.body.hasVoted).toBe(false);
     expect(res.body.media[0].url).toContain(res.body.media[0].objectKey);
+  });
+
+  it('shows hasVoted:true and voteCount for the voter\'s authenticated request', async () => {
+    const { userId, token } = await createUserToken();
+    const problem = await createProblem(token, userId);
+    const { token: voterToken } = await createUserToken('voter@example.com');
+    await request(app).post(`/problems/${problem.id}/vote`).set('Authorization', `Bearer ${voterToken}`);
+
+    const res = await request(app).get(`/problems/${problem.id}`).set('Authorization', `Bearer ${voterToken}`);
+    expect(res.status).toBe(200);
+    expect(res.body.hasVoted).toBe(true);
+    expect(res.body.voteCount).toBe(1);
   });
 });
 
@@ -340,6 +390,21 @@ describe('POST /problems/:id/resolution-proposals', () => {
       .send({ objectKey: `${secondProposerId}/evidence.jpg` });
 
     expect(res.status).toBe(409);
+  });
+
+  it('rejects a resolution proposal referencing another user\'s objectKey', async () => {
+    const { userId, token } = await createUserToken();
+    const problem = await createProblem(token, userId);
+    const { token: proposerToken } = await createUserToken('vizinho@example.com');
+    const { userId: someoneElseId } = await createUserToken('terceiro@example.com');
+
+    const res = await request(app)
+      .post(`/problems/${problem.id}/resolution-proposals`)
+      .set('Authorization', `Bearer ${proposerToken}`)
+      .send({ objectKey: `${someoneElseId}/evidence.jpg` });
+
+    expect(res.status).toBe(403);
+    expect(res.body.error).toBe('forbidden_object_key');
   });
 });
 

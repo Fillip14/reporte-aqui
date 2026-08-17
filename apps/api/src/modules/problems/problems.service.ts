@@ -10,8 +10,17 @@ export class InvalidProblemStateError extends Error {}
 export class CannotActOnOwnProblemError extends Error {}
 export class PendingProposalExistsError extends Error {}
 export class RatingAlreadyExistsError extends Error {}
+export class ForbiddenObjectKeyError extends Error {}
+
+function assertObjectKeyOwnedBy(objectKey: string, userId: string) {
+  if (!objectKey.startsWith(`${userId}/`)) throw new ForbiddenObjectKeyError();
+}
 
 export async function createProblem(authorId: string, input: CreateProblemInput) {
+  for (const item of input.media) {
+    assertObjectKeyOwnedBy(item.objectKey, authorId);
+  }
+
   return prisma.problem.create({
     data: {
       authorId,
@@ -137,6 +146,8 @@ export async function toggleVote(problemId: string, userId: string): Promise<{ v
 }
 
 export async function createResolutionProposal(problemId: string, proposedById: string, objectKey: string) {
+  assertObjectKeyOwnedBy(objectKey, proposedById);
+
   const problem = await prisma.problem.findUnique({ where: { id: problemId } });
   if (!problem) throw new ProblemNotFoundError();
   if (problem.authorId === proposedById) throw new CannotActOnOwnProblemError();
@@ -147,13 +158,19 @@ export async function createResolutionProposal(problemId: string, proposedById: 
   });
   if (existingPending) throw new PendingProposalExistsError();
 
-  const proposal = await prisma.resolutionProposal.create({
-    data: { problemId, proposedById, objectKey },
+  return prisma.$transaction(async (tx) => {
+    const proposal = await tx.resolutionProposal.create({
+      data: { problemId, proposedById, objectKey },
+    });
+
+    const { count } = await tx.problem.updateMany({
+      where: { id: problemId, status: 'open' },
+      data: { status: 'pending_verification' },
+    });
+    if (count === 0) throw new InvalidProblemStateError();
+
+    return proposal;
   });
-
-  await prisma.problem.update({ where: { id: problemId }, data: { status: 'pending_verification' } });
-
-  return proposal;
 }
 
 export async function rateResolution(

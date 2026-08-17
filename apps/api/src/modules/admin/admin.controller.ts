@@ -59,6 +59,9 @@ export async function approveResolutionProposal(req: AuthenticatedRequest, res: 
     if (err instanceof adminService.ProposalAlreadyReviewedError) {
       return res.status(409).json({ error: 'proposal_already_reviewed' });
     }
+    if (err instanceof adminService.ProblemStateChangedError) {
+      return res.status(409).json({ error: 'problem_state_changed' });
+    }
     throw err;
   }
 }
@@ -73,6 +76,9 @@ export async function rejectResolutionProposal(req: AuthenticatedRequest, res: R
     }
     if (err instanceof adminService.ProposalAlreadyReviewedError) {
       return res.status(409).json({ error: 'proposal_already_reviewed' });
+    }
+    if (err instanceof adminService.ProblemStateChangedError) {
+      return res.status(409).json({ error: 'problem_state_changed' });
     }
     throw err;
   }

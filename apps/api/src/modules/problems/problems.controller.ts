@@ -4,7 +4,7 @@ import { createProblemSchema, rateResolutionSchema } from './problems.validation
 import * as problemsService from './problems.service.js';
 import { listProblemsQuerySchema, createResolutionProposalSchema } from './problems.validation.js';
 import { ProblemNotFoundError, NotProblemAuthorError, InvalidProblemStateError, RatingAlreadyExistsError } from './problems.service.js';
-import { CannotActOnOwnProblemError, PendingProposalExistsError } from './problems.service.js';
+import { CannotActOnOwnProblemError, PendingProposalExistsError, ForbiddenObjectKeyError } from './problems.service.js';
 
 export async function createProblem(req: AuthenticatedRequest, res: Response) {
   const parsed = createProblemSchema.safeParse(req.body);
@@ -12,8 +12,13 @@ export async function createProblem(req: AuthenticatedRequest, res: Response) {
     return res.status(400).json({ error: 'invalid_input', details: parsed.error.flatten() });
   }
 
-  const problem = await problemsService.createProblem(req.user!.id, parsed.data);
-  return res.status(201).json(problem);
+  try {
+    const problem = await problemsService.createProblem(req.user!.id, parsed.data);
+    return res.status(201).json(problem);
+  } catch (err) {
+    if (err instanceof ForbiddenObjectKeyError) return res.status(403).json({ error: 'forbidden_object_key' });
+    throw err;
+  }
 }
 
 export async function listProblems(req: AuthenticatedRequest, res: Response) {
@@ -90,6 +95,7 @@ export async function createResolutionProposal(req: AuthenticatedRequest, res: R
     if (err instanceof CannotActOnOwnProblemError) return res.status(403).json({ error: 'forbidden' });
     if (err instanceof InvalidProblemStateError) return res.status(409).json({ error: 'invalid_problem_state' });
     if (err instanceof PendingProposalExistsError) return res.status(409).json({ error: 'pending_proposal_exists' });
+    if (err instanceof ForbiddenObjectKeyError) return res.status(403).json({ error: 'forbidden_object_key' });
     throw err;
   }
 }

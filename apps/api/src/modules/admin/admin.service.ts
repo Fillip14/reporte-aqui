@@ -2,6 +2,7 @@ import { prisma } from '../../lib/prisma.js';
 
 export class ProposalNotFoundError extends Error {}
 export class ProposalAlreadyReviewedError extends Error {}
+export class ProblemStateChangedError extends Error {}
 
 export async function listPendingCompanies() {
   return prisma.companyProfile.findMany({ where: { verificationStatus: 'pending' } });
@@ -40,18 +41,20 @@ export async function approveResolutionProposal(proposalId: string, adminId: str
   if (!proposal) throw new ProposalNotFoundError();
   if (proposal.status !== 'pending') throw new ProposalAlreadyReviewedError();
 
-  const [updatedProposal] = await prisma.$transaction([
-    prisma.resolutionProposal.update({
+  return prisma.$transaction(async (tx) => {
+    const updatedProposal = await tx.resolutionProposal.update({
       where: { id: proposalId },
       data: { status: 'approved', reviewedById: adminId, reviewedAt: new Date() },
-    }),
-    prisma.problem.update({
-      where: { id: proposal.problemId },
-      data: { status: 'resolved', resolvedAt: new Date(), resolvedById: adminId },
-    }),
-  ]);
+    });
 
-  return updatedProposal;
+    const { count } = await tx.problem.updateMany({
+      where: { id: proposal.problemId, status: 'pending_verification' },
+      data: { status: 'resolved', resolvedAt: new Date(), resolvedById: adminId },
+    });
+    if (count === 0) throw new ProblemStateChangedError();
+
+    return updatedProposal;
+  });
 }
 
 export async function rejectResolutionProposal(proposalId: string, adminId: string) {
@@ -59,16 +62,18 @@ export async function rejectResolutionProposal(proposalId: string, adminId: stri
   if (!proposal) throw new ProposalNotFoundError();
   if (proposal.status !== 'pending') throw new ProposalAlreadyReviewedError();
 
-  const [updatedProposal] = await prisma.$transaction([
-    prisma.resolutionProposal.update({
+  return prisma.$transaction(async (tx) => {
+    const updatedProposal = await tx.resolutionProposal.update({
       where: { id: proposalId },
       data: { status: 'rejected', reviewedById: adminId, reviewedAt: new Date() },
-    }),
-    prisma.problem.update({
-      where: { id: proposal.problemId },
-      data: { status: 'open' },
-    }),
-  ]);
+    });
 
-  return updatedProposal;
+    const { count } = await tx.problem.updateMany({
+      where: { id: proposal.problemId, status: 'pending_verification' },
+      data: { status: 'open' },
+    });
+    if (count === 0) throw new ProblemStateChangedError();
+
+    return updatedProposal;
+  });
 }
