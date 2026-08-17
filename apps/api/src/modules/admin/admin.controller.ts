@@ -42,3 +42,38 @@ export async function rejectCompany(req: AuthenticatedRequest, res: Response) {
     throw err;
   }
 }
+
+export async function listPendingResolutionProposals(_req: AuthenticatedRequest, res: Response) {
+  const proposals = await adminService.listPendingResolutionProposals();
+  return res.status(200).json(proposals);
+}
+
+export async function approveResolutionProposal(req: AuthenticatedRequest, res: Response) {
+  try {
+    const proposal = await adminService.approveResolutionProposal(req.params.id, req.user!.id);
+    return res.status(200).json(proposal);
+  } catch (err) {
+    if (err instanceof adminService.ProposalNotFoundError) {
+      return res.status(404).json({ error: 'proposal_not_found' });
+    }
+    if (err instanceof adminService.ProposalAlreadyReviewedError) {
+      return res.status(409).json({ error: 'proposal_already_reviewed' });
+    }
+    throw err;
+  }
+}
+
+export async function rejectResolutionProposal(req: AuthenticatedRequest, res: Response) {
+  try {
+    const proposal = await adminService.rejectResolutionProposal(req.params.id, req.user!.id);
+    return res.status(200).json(proposal);
+  } catch (err) {
+    if (err instanceof adminService.ProposalNotFoundError) {
+      return res.status(404).json({ error: 'proposal_not_found' });
+    }
+    if (err instanceof adminService.ProposalAlreadyReviewedError) {
+      return res.status(409).json({ error: 'proposal_already_reviewed' });
+    }
+    throw err;
+  }
+}

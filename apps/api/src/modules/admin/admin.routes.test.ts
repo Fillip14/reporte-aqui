@@ -88,3 +88,105 @@ describe('admin company verification routes', () => {
     expect(res.body.rejectionReason).toBe('CNPJ não confere com o nome informado');
   });
 });
+
+async function createIndividualToken(email: string) {
+  const user = await prisma.user.create({
+    data: { email, passwordHash: await hashPassword('irrelevant'), role: 'individual' },
+  });
+  return { userId: user.id, token: signAccessToken({ sub: user.id, role: 'individual' }) };
+}
+
+async function createOpenProblemWithPendingProposal() {
+  const { userId: authorId, token: authorToken } = await createIndividualToken('autor@example.com');
+  const problemRes = await request(app)
+    .post('/problems')
+    .set('Authorization', `Bearer ${authorToken}`)
+    .send({
+      title: 'Lâmpada queimada na praça',
+      description: 'A lâmpada do poste da praça central está queimada há semanas.',
+      location: 'Praça Central',
+      media: [{ objectKey: `${authorId}/photo.jpg`, mediaType: 'image' }],
+    });
+  const problemId = problemRes.body.id as string;
+
+  const { userId: proposerId, token: proposerToken } = await createIndividualToken('vizinho@example.com');
+  const proposalRes = await request(app)
+    .post(`/problems/${problemId}/resolution-proposals`)
+    .set('Authorization', `Bearer ${proposerToken}`)
+    .send({ objectKey: `${proposerId}/evidence.jpg` });
+
+  return { problemId, proposalId: proposalRes.body.id as string };
+}
+
+describe('admin resolution proposal review routes', () => {
+  beforeEach(async () => {
+    await resetDb();
+  });
+
+  it('lists pending resolution proposals for an admin', async () => {
+    await createOpenProblemWithPendingProposal();
+    const adminToken = await createAdminToken();
+
+    const res = await request(app)
+      .get('/admin/resolution-proposals/pending')
+      .set('Authorization', `Bearer ${adminToken}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveLength(1);
+  });
+
+  it('approves a proposal and resolves the linked problem', async () => {
+    const { problemId, proposalId } = await createOpenProblemWithPendingProposal();
+    const adminToken = await createAdminToken();
+
+    const res = await request(app)
+      .post(`/admin/resolution-proposals/${proposalId}/approve`)
+      .set('Authorization', `Bearer ${adminToken}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.status).toBe('approved');
+
+    const problem = await prisma.problem.findUniqueOrThrow({ where: { id: problemId } });
+    expect(problem.status).toBe('resolved');
+  });
+
+  it('rejects a proposal and returns the linked problem to open', async () => {
+    const { problemId, proposalId } = await createOpenProblemWithPendingProposal();
+    const adminToken = await createAdminToken();
+
+    const res = await request(app)
+      .post(`/admin/resolution-proposals/${proposalId}/reject`)
+      .set('Authorization', `Bearer ${adminToken}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.status).toBe('rejected');
+
+    const problem = await prisma.problem.findUniqueOrThrow({ where: { id: problemId } });
+    expect(problem.status).toBe('open');
+  });
+
+  it('returns 409 when approving an already-reviewed proposal', async () => {
+    const { proposalId } = await createOpenProblemWithPendingProposal();
+    const adminToken = await createAdminToken();
+
+    await request(app)
+      .post(`/admin/resolution-proposals/${proposalId}/approve`)
+      .set('Authorization', `Bearer ${adminToken}`);
+
+    const res = await request(app)
+      .post(`/admin/resolution-proposals/${proposalId}/approve`)
+      .set('Authorization', `Bearer ${adminToken}`);
+
+    expect(res.status).toBe(409);
+  });
+
+  it('returns 404 for an unknown proposal', async () => {
+    const adminToken = await createAdminToken();
+
+    const res = await request(app)
+      .post('/admin/resolution-proposals/00000000-0000-0000-0000-000000000000/approve')
+      .set('Authorization', `Bearer ${adminToken}`);
+
+    expect(res.status).toBe(404);
+  });
+});

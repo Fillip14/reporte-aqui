@@ -10,4 +10,8 @@ adminRouter.get('/companies/pending', adminController.listPendingCompanies);
 adminRouter.post('/companies/:id/approve', adminController.approveCompany);
 adminRouter.post('/companies/:id/reject', adminController.rejectCompany);
 
+adminRouter.get('/resolution-proposals/pending', adminController.listPendingResolutionProposals);
+adminRouter.post('/resolution-proposals/:id/approve', adminController.approveResolutionProposal);
+adminRouter.post('/resolution-proposals/:id/reject', adminController.rejectResolutionProposal);
+
 export default adminRouter;
