@@ -97,3 +97,91 @@ describe('POST /auth/register/company', () => {
     expect(res.body.error).toBe('cnpj_already_registered');
   });
 });
+
+describe('POST /auth/login', () => {
+  beforeEach(async () => {
+    await resetDb();
+    await request(app).post('/auth/register/individual').send({
+      email: 'ana@example.com',
+      password: 'super-secret-1',
+      fullName: 'Ana Silva',
+    });
+  });
+
+  it('logs in with correct credentials', async () => {
+    const res = await request(app).post('/auth/login').send({
+      email: 'ana@example.com',
+      password: 'super-secret-1',
+    });
+
+    expect(res.status).toBe(200);
+    expect(typeof res.body.accessToken).toBe('string');
+    expect(res.headers['set-cookie'][0]).toMatch(/refreshToken=/);
+  });
+
+  it('rejects an incorrect password with 401', async () => {
+    const res = await request(app).post('/auth/login').send({
+      email: 'ana@example.com',
+      password: 'wrong-password',
+    });
+
+    expect(res.status).toBe(401);
+    expect(res.body.error).toBe('invalid_credentials');
+  });
+
+  it('rejects an unknown email with 401', async () => {
+    const res = await request(app).post('/auth/login').send({
+      email: 'nobody@example.com',
+      password: 'super-secret-1',
+    });
+
+    expect(res.status).toBe(401);
+  });
+});
+
+describe('POST /auth/refresh and POST /auth/logout', () => {
+  beforeEach(async () => {
+    await resetDb();
+  });
+
+  it('issues a new access token and rotates the refresh token', async () => {
+    const registerRes = await request(app).post('/auth/register/individual').send({
+      email: 'ana@example.com',
+      password: 'super-secret-1',
+      fullName: 'Ana Silva',
+    });
+    const originalCookie = registerRes.headers['set-cookie'][0];
+
+    const refreshRes = await request(app).post('/auth/refresh').set('Cookie', originalCookie);
+
+    expect(refreshRes.status).toBe(200);
+    expect(typeof refreshRes.body.accessToken).toBe('string');
+    const newCookie = refreshRes.headers['set-cookie'][0];
+    expect(newCookie).toMatch(/refreshToken=/);
+    expect(newCookie).not.toBe(originalCookie);
+
+    const reuseRes = await request(app).post('/auth/refresh').set('Cookie', originalCookie);
+    expect(reuseRes.status).toBe(401);
+  });
+
+  it('rejects refresh with no cookie', async () => {
+    const res = await request(app).post('/auth/refresh');
+    expect(res.status).toBe(401);
+    expect(res.body.error).toBe('missing_refresh_token');
+  });
+
+  it('revokes the refresh token on logout so it can no longer be used', async () => {
+    const registerRes = await request(app).post('/auth/register/individual').send({
+      email: 'ana@example.com',
+      password: 'super-secret-1',
+      fullName: 'Ana Silva',
+    });
+    const cookie = registerRes.headers['set-cookie'][0];
+
+    const logoutRes = await request(app).post('/auth/logout').set('Cookie', cookie);
+    expect(logoutRes.status).toBe(204);
+
+    const refreshRes = await request(app).post('/auth/refresh').set('Cookie', cookie);
+    expect(refreshRes.status).toBe(401);
+  });
+});

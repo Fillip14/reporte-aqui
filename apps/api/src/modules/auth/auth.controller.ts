@@ -1,7 +1,12 @@
 import type { Request, Response } from 'express';
-import { registerIndividualSchema, registerCompanySchema } from './auth.validation.js';
+import { registerIndividualSchema, registerCompanySchema, loginSchema } from './auth.validation.js';
 import * as authService from './auth.service.js';
-import { EmailAlreadyRegisteredError, CnpjAlreadyRegisteredError } from './auth.service.js';
+import {
+  EmailAlreadyRegisteredError,
+  CnpjAlreadyRegisteredError,
+  InvalidCredentialsError,
+  InvalidRefreshTokenError,
+} from './auth.service.js';
 
 export const REFRESH_COOKIE = 'refreshToken';
 
@@ -51,4 +56,49 @@ export async function registerCompany(req: Request, res: Response) {
     }
     throw err;
   }
+}
+
+export async function login(req: Request, res: Response) {
+  const parsed = loginSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({ error: 'invalid_input', details: parsed.error.flatten() });
+  }
+
+  try {
+    const result = await authService.login(parsed.data);
+    setRefreshCookie(res, result.refreshToken);
+    return res.status(200).json({ user: result.user, accessToken: result.accessToken });
+  } catch (err) {
+    if (err instanceof InvalidCredentialsError) {
+      return res.status(401).json({ error: 'invalid_credentials' });
+    }
+    throw err;
+  }
+}
+
+export async function refresh(req: Request, res: Response) {
+  const token = req.cookies?.[REFRESH_COOKIE];
+  if (!token) {
+    return res.status(401).json({ error: 'missing_refresh_token' });
+  }
+
+  try {
+    const result = await authService.refreshSession(token);
+    setRefreshCookie(res, result.refreshToken);
+    return res.status(200).json({ user: result.user, accessToken: result.accessToken });
+  } catch (err) {
+    if (err instanceof InvalidRefreshTokenError) {
+      return res.status(401).json({ error: 'invalid_refresh_token' });
+    }
+    throw err;
+  }
+}
+
+export async function logout(req: Request, res: Response) {
+  const token = req.cookies?.[REFRESH_COOKIE];
+  if (token) {
+    await authService.logout(token);
+  }
+  res.clearCookie(REFRESH_COOKIE);
+  return res.status(204).send();
 }

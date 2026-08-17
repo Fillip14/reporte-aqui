@@ -1,8 +1,13 @@
 import type { UserRole } from '@prisma/client';
 import { prisma } from '../../lib/prisma.js';
-import { hashPassword } from '../../lib/password.js';
-import { signAccessToken, generateRefreshToken, refreshTokenExpiryDate } from '../../lib/tokens.js';
-import type { RegisterIndividualInput, RegisterCompanyInput } from './auth.validation.js';
+import { hashPassword, verifyPassword } from '../../lib/password.js';
+import {
+  signAccessToken,
+  generateRefreshToken,
+  hashRefreshToken,
+  refreshTokenExpiryDate,
+} from '../../lib/tokens.js';
+import type { RegisterIndividualInput, RegisterCompanyInput, LoginInput } from './auth.validation.js';
 
 export class EmailAlreadyRegisteredError extends Error {}
 export class CnpjAlreadyRegisteredError extends Error {}
@@ -63,4 +68,42 @@ export async function issueSession(userId: string, email: string, role: UserRole
   });
 
   return { user: { id: userId, email, role }, accessToken, refreshToken };
+}
+
+export class InvalidCredentialsError extends Error {}
+export class InvalidRefreshTokenError extends Error {}
+
+export async function login(input: LoginInput): Promise<AuthResult> {
+  const user = await prisma.user.findUnique({ where: { email: input.email } });
+  if (!user || user.status === 'deleted') throw new InvalidCredentialsError();
+
+  const valid = await verifyPassword(input.password, user.passwordHash);
+  if (!valid) throw new InvalidCredentialsError();
+
+  return issueSession(user.id, user.email, user.role);
+}
+
+export async function refreshSession(refreshToken: string): Promise<AuthResult> {
+  const tokenHash = hashRefreshToken(refreshToken);
+  const stored = await prisma.refreshToken.findUnique({ where: { tokenHash } });
+
+  if (!stored || stored.revokedAt || stored.expiresAt < new Date()) {
+    throw new InvalidRefreshTokenError();
+  }
+
+  await prisma.refreshToken.update({
+    where: { id: stored.id },
+    data: { revokedAt: new Date() },
+  });
+
+  const user = await prisma.user.findUniqueOrThrow({ where: { id: stored.userId } });
+  return issueSession(user.id, user.email, user.role);
+}
+
+export async function logout(refreshToken: string): Promise<void> {
+  const tokenHash = hashRefreshToken(refreshToken);
+  await prisma.refreshToken.updateMany({
+    where: { tokenHash, revokedAt: null },
+    data: { revokedAt: new Date() },
+  });
 }
