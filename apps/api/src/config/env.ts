@@ -8,6 +8,11 @@ const envSchema = z.object({
   ACCESS_TOKEN_TTL_SECONDS: z.coerce.number().default(900),
   REFRESH_TOKEN_TTL_DAYS: z.coerce.number().default(30),
   AUTH_RATE_LIMIT_MAX: z.coerce.number().default(20),
+  R2_BUCKET: z.string().min(1),
+  R2_ENDPOINT: z.string().min(1),
+  R2_ACCESS_KEY_ID: z.string().min(1),
+  R2_SECRET_ACCESS_KEY: z.string().min(1),
+  R2_PUBLIC_URL_BASE: z.string().min(1),
 });
 
 export const env = envSchema.parse(process.env);
