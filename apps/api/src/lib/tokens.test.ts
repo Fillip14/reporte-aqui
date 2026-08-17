@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import jwt from 'jsonwebtoken';
 import {
   signAccessToken,
   verifyAccessToken,
@@ -18,6 +19,12 @@ describe('access tokens', () => {
   it('rejects a tampered token', () => {
     const token = signAccessToken({ sub: 'user-1', role: 'individual' });
     expect(() => verifyAccessToken(`${token}tampered`)).toThrow();
+  });
+
+  it('expires 900 seconds (ACCESS_TOKEN_TTL_SECONDS) after issuance', () => {
+    const token = signAccessToken({ sub: 'user-1', role: 'individual' });
+    const decoded = jwt.decode(token) as { iat: number; exp: number };
+    expect(decoded.exp - decoded.iat).toBe(900);
   });
 });
 

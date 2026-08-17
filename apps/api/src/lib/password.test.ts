@@ -8,6 +8,11 @@ describe('password hashing', () => {
     expect(await verifyPassword('correct-horse-battery-staple', hash)).toBe(true);
   });
 
+  it('uses bcrypt cost factor 12', async () => {
+    const hash = await hashPassword('correct-horse-battery-staple');
+    expect(hash.startsWith('$2b$12$')).toBe(true);
+  });
+
   it('rejects an incorrect password', async () => {
     const hash = await hashPassword('correct-horse-battery-staple');
     expect(await verifyPassword('wrong-password', hash)).toBe(false);

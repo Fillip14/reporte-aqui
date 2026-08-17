@@ -13,7 +13,7 @@ export async function seedAdmin(email: string, password: string): Promise<{ crea
 }
 
 async function runFromCli() {
-  const email = process.env.SEED_ADMIN_EMAIL;
+  const email = process.env.SEED_ADMIN_EMAIL?.trim().toLowerCase();
   const password = process.env.SEED_ADMIN_PASSWORD;
 
   if (!email || !password) {

@@ -7,6 +7,7 @@ import {
   InvalidCredentialsError,
   InvalidRefreshTokenError,
 } from './auth.service.js';
+import { env } from '../../config/env.js';
 
 export const REFRESH_COOKIE = 'refreshToken';
 
@@ -15,7 +16,7 @@ export function setRefreshCookie(res: Response, token: string) {
     httpOnly: true,
     secure: true,
     sameSite: 'strict',
-    maxAge: 30 * 24 * 60 * 60 * 1000,
+    maxAge: env.REFRESH_TOKEN_TTL_DAYS * 24 * 60 * 60 * 1000,
   });
 }
 

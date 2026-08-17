@@ -2,6 +2,7 @@ import type { Response } from 'express';
 import { z } from 'zod';
 import type { AuthenticatedRequest } from '../../middleware/requireAuth.js';
 import * as meService from './me.service.js';
+import { CnpjAlreadyRegisteredError } from '../auth/auth.service.js';
 
 const updateIndividualSchema = z.object({ fullName: z.string().min(1) });
 const updateCompanySchema = z.object({
@@ -44,7 +45,14 @@ export async function updateMe(req: AuthenticatedRequest, res: Response) {
     if (!parsed.success) {
       return res.status(400).json({ error: 'invalid_input', details: parsed.error.flatten() });
     }
-    await meService.updateCompanyProfile(req.user!.id, parsed.data);
+    try {
+      await meService.updateCompanyProfile(req.user!.id, parsed.data);
+    } catch (err) {
+      if (err instanceof CnpjAlreadyRegisteredError) {
+        return res.status(409).json({ error: 'cnpj_already_registered' });
+      }
+      throw err;
+    }
   } else {
     return res.status(400).json({ error: 'not_editable' });
   }

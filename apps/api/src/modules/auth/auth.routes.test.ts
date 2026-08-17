@@ -21,7 +21,11 @@ describe('POST /auth/register/individual', () => {
     expect(res.status).toBe(201);
     expect(res.body.user).toMatchObject({ email: 'ana@example.com', role: 'individual' });
     expect(typeof res.body.accessToken).toBe('string');
-    expect(res.headers['set-cookie'][0]).toMatch(/refreshToken=/);
+    const cookie = res.headers['set-cookie'][0];
+    expect(cookie).toMatch(/refreshToken=/);
+    expect(cookie).toMatch(/HttpOnly/);
+    expect(cookie).toMatch(/Secure/);
+    expect(cookie).toMatch(/SameSite=Strict/);
 
     const stored = await prisma.user.findUnique({
       where: { email: 'ana@example.com' },
