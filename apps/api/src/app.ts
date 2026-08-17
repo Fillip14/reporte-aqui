@@ -3,6 +3,7 @@ import express from 'express';
 import cookieParser from 'cookie-parser';
 import authRouter from './modules/auth/auth.routes.js';
 import meRouter from './modules/me/me.routes.js';
+import adminRouter from './modules/admin/admin.routes.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
 export function createApp() {
@@ -16,6 +17,7 @@ export function createApp() {
 
   app.use('/auth', authRouter);
   app.use('/me', meRouter);
+  app.use('/admin', adminRouter);
 
   app.use(errorHandler);
 
