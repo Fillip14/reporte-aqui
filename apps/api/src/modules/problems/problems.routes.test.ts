@@ -231,3 +231,60 @@ describe('POST /problems/:id/resolve', () => {
     expect(res.status).toBe(403);
   });
 });
+
+describe('POST /problems/:id/vote', () => {
+  beforeEach(async () => {
+    await resetDb();
+  });
+
+  it('adds a vote on first call', async () => {
+    const { userId, token } = await createUserToken();
+    const problem = await createProblem(token, userId);
+    const { token: voterToken } = await createUserToken('voter@example.com');
+
+    const res = await request(app)
+      .post(`/problems/${problem.id}/vote`)
+      .set('Authorization', `Bearer ${voterToken}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ voted: true });
+  });
+
+  it('removes the vote on a second call (toggle)', async () => {
+    const { userId, token } = await createUserToken();
+    const problem = await createProblem(token, userId);
+    const { token: voterToken } = await createUserToken('voter@example.com');
+
+    await request(app).post(`/problems/${problem.id}/vote`).set('Authorization', `Bearer ${voterToken}`);
+    const res = await request(app)
+      .post(`/problems/${problem.id}/vote`)
+      .set('Authorization', `Bearer ${voterToken}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ voted: false });
+  });
+
+  it('rejects the author voting on their own problem', async () => {
+    const { userId, token } = await createUserToken();
+    const problem = await createProblem(token, userId);
+
+    const res = await request(app)
+      .post(`/problems/${problem.id}/vote`)
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(res.status).toBe(403);
+  });
+
+  it('rejects voting on a cancelled problem', async () => {
+    const { userId, token } = await createUserToken();
+    const problem = await createProblem(token, userId);
+    await request(app).post(`/problems/${problem.id}/cancel`).set('Authorization', `Bearer ${token}`);
+    const { token: voterToken } = await createUserToken('voter@example.com');
+
+    const res = await request(app)
+      .post(`/problems/${problem.id}/vote`)
+      .set('Authorization', `Bearer ${voterToken}`);
+
+    expect(res.status).toBe(409);
+  });
+});

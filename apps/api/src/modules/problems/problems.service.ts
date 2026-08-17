@@ -114,3 +114,24 @@ export async function resolveProblem(problemId: string, actingUserId: string, ac
     data: { status: 'resolved', resolvedAt: new Date(), resolvedById: actingUserId },
   });
 }
+
+export async function toggleVote(problemId: string, userId: string): Promise<{ voted: boolean }> {
+  const problem = await prisma.problem.findUnique({ where: { id: problemId } });
+  if (!problem) throw new ProblemNotFoundError();
+  if (problem.authorId === userId) throw new CannotActOnOwnProblemError();
+  if (problem.status !== 'open' && problem.status !== 'pending_verification') {
+    throw new InvalidProblemStateError();
+  }
+
+  const existing = await prisma.problemVote.findUnique({
+    where: { problemId_userId: { problemId, userId } },
+  });
+
+  if (existing) {
+    await prisma.problemVote.delete({ where: { id: existing.id } });
+    return { voted: false };
+  }
+
+  await prisma.problemVote.create({ data: { problemId, userId } });
+  return { voted: true };
+}
