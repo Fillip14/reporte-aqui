@@ -26,3 +26,9 @@ export const createResolutionProposalSchema = z.object({
   objectKey: z.string().min(1),
 });
 export type CreateResolutionProposalInput = z.infer<typeof createResolutionProposalSchema>;
+
+export const rateResolutionSchema = z.object({
+  score: z.coerce.number().int().min(1).max(5),
+  comment: z.string().trim().max(1000).optional(),
+});
+export type RateResolutionInput = z.infer<typeof rateResolutionSchema>;

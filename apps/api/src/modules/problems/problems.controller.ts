@@ -1,9 +1,9 @@
 import type { Response } from 'express';
 import type { AuthenticatedRequest } from '../../middleware/requireAuth.js';
-import { createProblemSchema } from './problems.validation.js';
+import { createProblemSchema, rateResolutionSchema } from './problems.validation.js';
 import * as problemsService from './problems.service.js';
 import { listProblemsQuerySchema, createResolutionProposalSchema } from './problems.validation.js';
-import { ProblemNotFoundError, NotProblemAuthorError, InvalidProblemStateError } from './problems.service.js';
+import { ProblemNotFoundError, NotProblemAuthorError, InvalidProblemStateError, RatingAlreadyExistsError } from './problems.service.js';
 import { CannotActOnOwnProblemError, PendingProposalExistsError } from './problems.service.js';
 
 export async function createProblem(req: AuthenticatedRequest, res: Response) {
@@ -90,6 +90,23 @@ export async function createResolutionProposal(req: AuthenticatedRequest, res: R
     if (err instanceof CannotActOnOwnProblemError) return res.status(403).json({ error: 'forbidden' });
     if (err instanceof InvalidProblemStateError) return res.status(409).json({ error: 'invalid_problem_state' });
     if (err instanceof PendingProposalExistsError) return res.status(409).json({ error: 'pending_proposal_exists' });
+    throw err;
+  }
+}
+
+export async function rateResolution(req: AuthenticatedRequest, res: Response) {
+  const parsed = rateResolutionSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({ error: 'invalid_input', details: parsed.error.flatten() });
+  }
+  try {
+    const rating = await problemsService.rateResolution(req.params.id, req.user!.id, req.user!.role, parsed.data);
+    return res.status(201).json(rating);
+  } catch (err) {
+    if (err instanceof ProblemNotFoundError) return res.status(404).json({ error: 'problem_not_found' });
+    if (err instanceof NotProblemAuthorError) return res.status(403).json({ error: 'forbidden' });
+    if (err instanceof InvalidProblemStateError) return res.status(409).json({ error: 'invalid_problem_state' });
+    if (err instanceof RatingAlreadyExistsError) return res.status(409).json({ error: 'rating_already_exists' });
     throw err;
   }
 }

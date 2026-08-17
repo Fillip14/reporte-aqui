@@ -1,7 +1,7 @@
 import { Prisma } from '@prisma/client';
 import type { UserRole } from '@prisma/client';
 import { prisma } from '../../lib/prisma.js';
-import type { CreateProblemInput, ListProblemsQuery } from './problems.validation.js';
+import type { CreateProblemInput, ListProblemsQuery, RateResolutionInput } from './problems.validation.js';
 import { publicMediaUrl } from '../../lib/r2.js';
 
 export class ProblemNotFoundError extends Error {}
@@ -154,4 +154,23 @@ export async function createResolutionProposal(problemId: string, proposedById: 
   await prisma.problem.update({ where: { id: problemId }, data: { status: 'pending_verification' } });
 
   return proposal;
+}
+
+export async function rateResolution(
+  problemId: string,
+  ratedById: string,
+  actingUserRole: UserRole,
+  input: RateResolutionInput,
+) {
+  const problem = await prisma.problem.findUnique({ where: { id: problemId } });
+  if (!problem) throw new ProblemNotFoundError();
+  if (problem.authorId !== ratedById && actingUserRole !== 'admin') throw new NotProblemAuthorError();
+  if (problem.status !== 'resolved') throw new InvalidProblemStateError();
+
+  const existing = await prisma.problemRating.findUnique({ where: { problemId } });
+  if (existing) throw new RatingAlreadyExistsError();
+
+  return prisma.problemRating.create({
+    data: { problemId, ratedById, score: input.score, comment: input.comment },
+  });
 }

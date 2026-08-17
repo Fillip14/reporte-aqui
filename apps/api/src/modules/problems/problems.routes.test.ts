@@ -342,3 +342,79 @@ describe('POST /problems/:id/resolution-proposals', () => {
     expect(res.status).toBe(409);
   });
 });
+
+describe('POST /problems/:id/rating', () => {
+  beforeEach(async () => {
+    await resetDb();
+  });
+
+  it('lets the author rate a resolved problem', async () => {
+    const { userId, token } = await createUserToken();
+    const problem = await createProblem(token, userId);
+    await request(app).post(`/problems/${problem.id}/resolve`).set('Authorization', `Bearer ${token}`);
+
+    const res = await request(app)
+      .post(`/problems/${problem.id}/rating`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ score: 4, comment: 'Resolvido em dois dias.' });
+
+    expect(res.status).toBe(201);
+    expect(res.body.score).toBe(4);
+  });
+
+  it('rejects rating a problem that is not resolved yet', async () => {
+    const { userId, token } = await createUserToken();
+    const problem = await createProblem(token, userId);
+
+    const res = await request(app)
+      .post(`/problems/${problem.id}/rating`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ score: 4 });
+
+    expect(res.status).toBe(409);
+  });
+
+  it('rejects a second rating on the same problem', async () => {
+    const { userId, token } = await createUserToken();
+    const problem = await createProblem(token, userId);
+    await request(app).post(`/problems/${problem.id}/resolve`).set('Authorization', `Bearer ${token}`);
+    await request(app)
+      .post(`/problems/${problem.id}/rating`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ score: 5 });
+
+    const res = await request(app)
+      .post(`/problems/${problem.id}/rating`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ score: 3 });
+
+    expect(res.status).toBe(409);
+  });
+
+  it('rejects a rating from a user who is neither the author nor an admin', async () => {
+    const { userId, token } = await createUserToken();
+    const problem = await createProblem(token, userId);
+    await request(app).post(`/problems/${problem.id}/resolve`).set('Authorization', `Bearer ${token}`);
+    const { token: otherToken } = await createUserToken('other@example.com');
+
+    const res = await request(app)
+      .post(`/problems/${problem.id}/rating`)
+      .set('Authorization', `Bearer ${otherToken}`)
+      .send({ score: 2 });
+
+    expect(res.status).toBe(403);
+  });
+
+  it('rejects a score outside 1-5', async () => {
+    const { userId, token } = await createUserToken();
+    const problem = await createProblem(token, userId);
+    await request(app).post(`/problems/${problem.id}/resolve`).set('Authorization', `Bearer ${token}`);
+
+    const res = await request(app)
+      .post(`/problems/${problem.id}/rating`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ score: 7 });
+
+    expect(res.status).toBe(400);
+  });
+});
