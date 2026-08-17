@@ -17,7 +17,8 @@
     "zod": "^3.23.8",
     "@prisma/client": "^5.14.0",
     "bcrypt": "^5.1.1",
-    "jsonwebtoken": "^9.0.2"
+    "jsonwebtoken": "^9.0.2",
+    "cookie-parser": "^1.4.6"
   },
   "devDependencies": {
     "typescript": "^5.4.5",
@@ -30,6 +31,7 @@
     "@types/node": "^20.12.12",
     "prisma": "^5.14.0",
     "@types/bcrypt": "^5.0.2",
-    "@types/jsonwebtoken": "^9.0.6"
+    "@types/jsonwebtoken": "^9.0.6",
+    "@types/cookie-parser": "^1.4.7"
   }
 }
