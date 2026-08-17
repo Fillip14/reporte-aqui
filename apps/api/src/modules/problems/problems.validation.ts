@@ -12,3 +12,12 @@ export const createProblemSchema = z.object({
   media: z.array(mediaItemSchema).min(1).max(5),
 });
 export type CreateProblemInput = z.infer<typeof createProblemSchema>;
+
+export const listProblemsQuerySchema = z.object({
+  status: z.enum(['open', 'pending_verification', 'resolved', 'cancelled']).optional(),
+  q: z.string().trim().min(1).max(200).optional(),
+  sort: z.enum(['newest', 'top']).default('newest'),
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(50).default(20),
+});
+export type ListProblemsQuery = z.infer<typeof listProblemsQuerySchema>;

@@ -64,3 +64,77 @@ describe('POST /problems', () => {
     expect(stored.status).toBe('open');
   });
 });
+
+async function createProblem(token: string, authorId: string, overrides: Partial<ReturnType<typeof validProblemBody>> = {}) {
+  const res = await request(app)
+    .post('/problems')
+    .set('Authorization', `Bearer ${token}`)
+    .send({ ...validProblemBody(authorId), ...overrides });
+  return res.body;
+}
+
+describe('GET /problems', () => {
+  beforeEach(async () => {
+    await resetDb();
+  });
+
+  it('lists problems without requiring authentication', async () => {
+    const { userId, token } = await createUserToken();
+    await createProblem(token, userId);
+
+    const res = await request(app).get('/problems');
+    expect(res.status).toBe(200);
+    expect(res.body.items).toHaveLength(1);
+    expect(res.body.items[0].hasVoted).toBe(false);
+  });
+
+  it('filters by status', async () => {
+    const { userId, token } = await createUserToken();
+    await createProblem(token, userId);
+
+    const res = await request(app).get('/problems').query({ status: 'resolved' });
+    expect(res.status).toBe(200);
+    expect(res.body.items).toHaveLength(0);
+  });
+
+  it('searches by title/description text', async () => {
+    const { userId, token } = await createUserToken();
+    await createProblem(token, userId, { title: 'Semáforo quebrado na esquina' });
+
+    const res = await request(app).get('/problems').query({ q: 'semáforo' });
+    expect(res.status).toBe(200);
+    expect(res.body.items).toHaveLength(1);
+  });
+
+  it('paginates results', async () => {
+    const { userId, token } = await createUserToken();
+    await createProblem(token, userId, { title: 'Problema um na via' });
+    await createProblem(token, userId, { title: 'Problema dois na via' });
+
+    const res = await request(app).get('/problems').query({ limit: 1, page: 2 });
+    expect(res.status).toBe(200);
+    expect(res.body.items).toHaveLength(1);
+    expect(res.body.total).toBe(2);
+  });
+});
+
+describe('GET /problems/:id', () => {
+  beforeEach(async () => {
+    await resetDb();
+  });
+
+  it('returns 404 for an unknown problem', async () => {
+    const res = await request(app).get('/problems/00000000-0000-0000-0000-000000000000');
+    expect(res.status).toBe(404);
+  });
+
+  it('returns problem detail without requiring authentication', async () => {
+    const { userId, token } = await createUserToken();
+    const problem = await createProblem(token, userId);
+
+    const res = await request(app).get(`/problems/${problem.id}`);
+    expect(res.status).toBe(200);
+    expect(res.body.hasVoted).toBe(false);
+    expect(res.body.media[0].url).toContain(res.body.media[0].objectKey);
+  });
+});
