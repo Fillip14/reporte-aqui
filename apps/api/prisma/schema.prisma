@@ -24,6 +24,24 @@ enum CompanyVerificationStatus {
   rejected
 }
 
+enum ProblemStatus {
+  open
+  pending_verification
+  resolved
+  cancelled
+}
+
+enum MediaType {
+  image
+  video
+}
+
+enum ResolutionProposalStatus {
+  pending
+  approved
+  rejected
+}
+
 model User {
   id           String     @id @default(uuid())
   email        String     @unique
@@ -37,6 +55,13 @@ model User {
   companyProfile    CompanyProfile?   @relation("CompanyOwner")
   refreshTokens     RefreshToken[]
   companiesVerified CompanyProfile[]  @relation("CompanyVerifiedBy")
+
+  problemsAuthored             Problem[]             @relation("ProblemAuthor")
+  problemsResolved             Problem[]             @relation("ProblemResolvedBy")
+  problemVotes                 ProblemVote[]
+  resolutionProposalsProposed  ResolutionProposal[]   @relation("ResolutionProposalProposedBy")
+  resolutionProposalsReviewed  ResolutionProposal[]   @relation("ResolutionProposalReviewedBy")
+  problemRatings                ProblemRating[]
 
   @@map("users")
 }
@@ -79,4 +104,87 @@ model RefreshToken {
 
   @@index([userId])
   @@map("refresh_tokens")
+}
+
+model Problem {
+  id           String        @id @default(uuid())
+  authorId     String
+  title        String
+  description  String
+  location     String
+  status       ProblemStatus @default(open)
+  resolvedAt   DateTime?
+  resolvedById String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  author     User  @relation("ProblemAuthor", fields: [authorId], references: [id])
+  resolvedBy User? @relation("ProblemResolvedBy", fields: [resolvedById], references: [id])
+
+  media               ProblemMedia[]
+  votes               ProblemVote[]
+  resolutionProposals ResolutionProposal[]
+  rating              ProblemRating?
+
+  @@index([authorId])
+  @@index([status])
+  @@map("problems")
+}
+
+model ProblemMedia {
+  id        String    @id @default(uuid())
+  problemId String
+  objectKey String
+  mediaType MediaType
+  createdAt DateTime  @default(now())
+
+  problem Problem @relation(fields: [problemId], references: [id])
+
+  @@index([problemId])
+  @@map("problem_media")
+}
+
+model ProblemVote {
+  id        String   @id @default(uuid())
+  problemId String
+  userId    String
+  createdAt DateTime @default(now())
+
+  problem Problem @relation(fields: [problemId], references: [id])
+  user    User    @relation(fields: [userId], references: [id])
+
+  @@unique([problemId, userId])
+  @@map("problem_votes")
+}
+
+model ResolutionProposal {
+  id           String                    @id @default(uuid())
+  problemId    String
+  proposedById String
+  objectKey    String
+  status       ResolutionProposalStatus  @default(pending)
+  reviewedById String?
+  reviewedAt   DateTime?
+  createdAt    DateTime                  @default(now())
+
+  problem    Problem @relation(fields: [problemId], references: [id])
+  proposedBy User    @relation("ResolutionProposalProposedBy", fields: [proposedById], references: [id])
+  reviewedBy User?   @relation("ResolutionProposalReviewedBy", fields: [reviewedById], references: [id])
+
+  @@index([problemId])
+  @@map("resolution_proposals")
+}
+
+model ProblemRating {
+  id        String   @id @default(uuid())
+  problemId String   @unique
+  ratedById String
+  score     Int
+  comment   String?
+  createdAt DateTime @default(now())
+
+  problem Problem @relation(fields: [problemId], references: [id])
+  ratedBy User    @relation(fields: [ratedById], references: [id])
+
+  @@map("problem_ratings")
 }
