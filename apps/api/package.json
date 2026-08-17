@@ -10,7 +10,8 @@
     "test": "dotenv -e .env.test -- vitest run",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "dotenv -e .env -- prisma migrate dev",
-    "prisma:migrate:test": "dotenv -e .env.test -- prisma migrate deploy"
+    "prisma:migrate:test": "dotenv -e .env.test -- prisma migrate deploy",
+    "seed:admin": "dotenv -e .env -- tsx src/scripts/seedAdmin.ts"
   },
   "dependencies": {
     "express": "^4.19.2",
