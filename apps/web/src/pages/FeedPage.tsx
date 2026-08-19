@@ -18,7 +18,7 @@ export default function FeedPage() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: ['problems', { status, q, sort }],
     queryFn: () => listProblems({ status: status || undefined, q: q || undefined, sort }),
   });
@@ -59,7 +59,8 @@ export default function FeedPage() {
       )}
 
       {isLoading && <p>Carregando...</p>}
-      {!isLoading && data?.items.length === 0 && <p>Nenhum problema encontrado.</p>}
+      {isError && <p role="alert">Não foi possível carregar os problemas.</p>}
+      {!isLoading && !isError && data?.items.length === 0 && <p>Nenhum problema encontrado.</p>}
 
       <ul>
         {data?.items.map((problem) => (
