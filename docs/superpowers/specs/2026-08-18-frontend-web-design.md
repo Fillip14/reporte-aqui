@@ -47,24 +47,50 @@ admin continua via chamada direta à API.
 - **Estilo:** Tailwind CSS.
 - **Testes:** Vitest + Testing Library + MSW (mock da API nos testes de
   componente), mesmo stack de teste do `apps/api`.
+- **Dev server ↔ API:** a API (`apps/api`) não tem CORS configurado
+  hoje. Em vez de mexer no backend já revisado/mesclado, o Vite dev
+  server faz proxy de `/api/*` para `http://localhost:3000/*`
+  (removendo o prefixo `/api` no proxy), deixando toda chamada do
+  frontend same-origin do ponto de vista do navegador. O client de API
+  usa `/api` como base path. Esse prefixo também evita colisão entre
+  as rotas da API (`/problems`) e as rotas de UI do React Router
+  (`/problems/:id`).
 
 ## Auth no cliente
 
-O backend já seta o JWT via cookie httpOnly no login/refresh — o
-frontend nunca guarda token em JS.
+O backend usa **Bearer token**: login/register/refresh retornam um
+`accessToken` de curta duração no corpo da resposta (não em cookie), e
+todo endpoint autenticado exige `Authorization: Bearer <accessToken>`.
+Só o **refresh token** vai em cookie httpOnly (setado pelo servidor em
+login/register/refresh, lido só por `POST /refresh`). Ou seja: o
+access token precisa viver em memória no cliente (nunca em
+`localStorage`, pra reduzir exposição a XSS) — a única coisa que o
+frontend nunca toca diretamente é o refresh token.
 
+- O client de API (`src/api/client.ts`) guarda o access token atual
+  numa variável de módulo (`let currentAccessToken`) com um setter
+  exportado (`setAccessToken`); toda chamada autenticada lê essa
+  variável pra montar o header `Authorization`.
 - `AuthContext` expõe `{ user, isLoading, login, logout }`. No boot do
-  app, chama `GET /me`; em 401, tenta uma vez `POST /refresh` e refaz
-  `GET /me`; se falhar de novo, `user = null`.
+  app (a memória do access token não sobrevive a um reload de página),
+  chama `POST /refresh` (cookie httpOnly enviado automaticamente pelo
+  navegador via `credentials: 'include'`); em caso de sucesso, guarda
+  `user` + `accessToken` (via `setAccessToken`); em caso de falha
+  (sem cookie válido), `user = null`.
 - `ProtectedRoute` redireciona pra tela de login se `user === null`
   (após `isLoading` resolver). Protege as rotas de criar problema e
   perfil. O feed e o detalhe do problema continuam públicos (a API já
   usa autenticação opcional nessas rotas), com as ações
   autenticadas ocultas/desabilitadas quando `user === null`.
-- Logout chama `POST /logout`, reseta o `AuthContext` e invalida todas
-  as queries do TanStack Query.
-- Qualquer 401 fora do boot dispara o mesmo fluxo de refresh-uma-vez do
-  client; se falhar, desloga e redireciona pro login.
+- Login/registro chamam o endpoint correspondente (sem `Authorization`
+  — ainda não há sessão), guardam `user` + `accessToken` no sucesso.
+- Logout chama `POST /logout` (usa o cookie de refresh, não exige
+  `Authorization`), limpa o access token em memória, reseta o
+  `AuthContext` e invalida todas as queries do TanStack Query.
+- Qualquer 401 numa chamada autenticada (fora do boot) dispara uma
+  única tentativa de `POST /refresh`; se der certo, repete a chamada
+  original com o novo access token; se falhar, desloga e redireciona
+  pro login.
 - Perfil de empresa com `verificationStatus = pending` mostra um badge
   informativo — não bloqueia nenhuma ação, pois a API não bloqueia hoje
   (consistente com o gap já registrado no ledger do subsistema
