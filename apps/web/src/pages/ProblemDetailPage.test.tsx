@@ -80,6 +80,29 @@ describe('ProblemDetailPage', () => {
     await waitFor(() => expect(proposalCalled).toBe(true));
   });
 
+  it('shows an error alert when submitting a resolution proposal fails', async () => {
+    mockLoggedIn({ id: 'voter-1', email: 'v@b.com', role: 'individual' });
+    server.use(
+      http.get('/api/problems/abc', () => HttpResponse.json(problem())),
+      http.post('/api/media/upload-url', () =>
+        HttpResponse.json({ objectKey: 'voter-1/a.jpg', uploadUrl: 'https://r2.example.com/voter-1/a.jpg' }),
+      ),
+      http.put('https://r2.example.com/voter-1/a.jpg', () => new HttpResponse(null, { status: 200 })),
+      http.post('/api/problems/abc/resolution-proposals', () =>
+        HttpResponse.json({ error: 'unknown_error' }, { status: 500 }),
+      ),
+    );
+
+    renderWithProviders(<ProblemDetailPage />, { route: '/problems/abc', path: '/problems/:id' });
+
+    await screen.findByText('Buraco na rua');
+    const file = new File(['x'], 'photo.jpg', { type: 'image/jpeg' });
+    await userEvent.upload(screen.getByLabelText('Foto de evidência'), file);
+    await userEvent.click(screen.getByRole('button', { name: 'Enviar proposta' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Não foi possível enviar a proposta. Tente novamente.');
+  });
+
   it('shows a rating form for the author on a resolved, unrated problem', async () => {
     mockLoggedIn({ id: 'author-1', email: 'a@b.com', role: 'individual' });
     server.use(http.get('/api/problems/abc', () => HttpResponse.json(problem({ status: 'resolved' }))));
