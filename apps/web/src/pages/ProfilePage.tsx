@@ -2,6 +2,7 @@ import { useState, useEffect, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getMe, updateMeIndividual, updateMeCompany, deleteMe } from '../api/me';
+import { ApiError } from '../api/client';
 import { useAuth } from '../auth/AuthContext';
 
 const VERIFICATION_LABELS = {
@@ -9,6 +10,15 @@ const VERIFICATION_LABELS = {
   approved: 'Verificada',
   rejected: 'Verificação rejeitada',
 };
+
+function updateErrorMessage(err: unknown): string {
+  if (err instanceof ApiError && err.code === 'invalid_input') {
+    return 'Verifique os dados informados.';
+  }
+  return 'Não foi possível salvar as alterações. Tente novamente.';
+}
+
+const DELETE_ERROR_MESSAGE = 'Não foi possível excluir a conta. Tente novamente.';
 
 export default function ProfilePage() {
   const { logout } = useAuth();
@@ -100,6 +110,8 @@ export default function ProfilePage() {
             </>
           )}
 
+          {updateMutation.isError && <p role="alert">{updateErrorMessage(updateMutation.error)}</p>}
+
           <button type="submit" disabled={updateMutation.isPending}>
             Salvar alterações
           </button>
@@ -107,7 +119,10 @@ export default function ProfilePage() {
       )}
 
       <button onClick={handleLogout}>Sair</button>
-      <button onClick={handleDelete}>Excluir conta</button>
+      <button onClick={handleDelete} disabled={deleteMutation.isPending}>
+        Excluir conta
+      </button>
+      {deleteMutation.isError && <p role="alert">{DELETE_ERROR_MESSAGE}</p>}
     </div>
   );
 }

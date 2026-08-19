@@ -80,4 +80,55 @@ describe('ProfilePage', () => {
     await waitFor(() => expect(deleteCalled).toBe(true));
     await waitFor(() => expect(logoutCalled).toBe(true));
   });
+
+  it('shows an error message when updating the profile fails', async () => {
+    mockLoggedIn(individualUser);
+    server.use(
+      http.get('/api/me', () =>
+        HttpResponse.json({
+          id: '1',
+          email: 'a@b.com',
+          role: 'individual',
+          individualProfile: { fullName: 'Ana' },
+          companyProfile: null,
+        }),
+      ),
+      http.patch('/api/me', () => HttpResponse.json({ error: 'invalid_input' }, { status: 400 })),
+    );
+
+    renderWithProviders(<ProfilePage />, { route: '/profile' });
+
+    const input = await screen.findByLabelText('Nome completo');
+    await userEvent.clear(input);
+    await userEvent.type(input, 'Ana Paula');
+    await userEvent.click(screen.getByRole('button', { name: 'Salvar alterações' }));
+
+    await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('Verifique os dados informados.'));
+  });
+
+  it('shows an error message when deleting the account fails', async () => {
+    mockLoggedIn(individualUser);
+    server.use(
+      http.get('/api/me', () =>
+        HttpResponse.json({
+          id: '1',
+          email: 'a@b.com',
+          role: 'individual',
+          individualProfile: { fullName: 'Ana' },
+          companyProfile: null,
+        }),
+      ),
+      http.delete('/api/me', () => HttpResponse.json({ error: 'unknown_error' }, { status: 500 })),
+    );
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+
+    renderWithProviders(<ProfilePage />, { route: '/profile' });
+
+    await screen.findByLabelText('Nome completo');
+    await userEvent.click(screen.getByRole('button', { name: 'Excluir conta' }));
+
+    await waitFor(() =>
+      expect(screen.getByRole('alert')).toHaveTextContent('Não foi possível excluir a conta. Tente novamente.'),
+    );
+  });
 });
