@@ -3,6 +3,7 @@ import RegisterPage from './pages/RegisterPage';
 import LoginPage from './pages/LoginPage';
 import FeedPage from './pages/FeedPage';
 import ProfilePage from './pages/ProfilePage';
+import ProblemDetailPage from './pages/ProblemDetailPage';
 import { ProtectedRoute } from './auth/ProtectedRoute';
 
 export default function App() {
@@ -20,6 +21,7 @@ export default function App() {
             </ProtectedRoute>
           }
         />
+        <Route path="/problems/:id" element={<ProblemDetailPage />} />
       </Routes>
     </BrowserRouter>
   );
