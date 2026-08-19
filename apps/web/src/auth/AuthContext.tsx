@@ -49,10 +49,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function logout() {
-    await logoutApi();
-    setAccessToken(null);
-    setUser(null);
-    queryClient.clear();
+    try {
+      await logoutApi();
+    } finally {
+      setAccessToken(null);
+      setUser(null);
+      queryClient.clear();
+    }
   }
 
   return (
