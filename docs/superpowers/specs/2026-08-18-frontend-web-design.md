@@ -112,8 +112,9 @@ Mapeamento 1:1 com a API existente:
 
 Regras de exibição condicional na tela de detalhe (derivadas do modelo
 já definido em `2026-08-17-problems-design.md`):
-- **Votar**: qualquer autenticado, exceto o autor do problema.
-- **Cancelar**: só o autor, quando `status` ∈ `{open, pending_verification}`.
+- **Votar**: qualquer autenticado, exceto o autor do problema, quando
+  `status` ∈ `{open, pending_verification}`.
+- **Cancelar**: só o autor, quando `status = open`.
 - **Resolver**: só o autor, quando `status = open`.
 - **Propor resolução**: autenticado não-autor, quando `status = open`.
 - **Avaliar resolução**: só o autor, quando `status = resolved`.

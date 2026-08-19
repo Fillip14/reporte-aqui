@@ -103,6 +103,28 @@ describe('ProblemDetailPage', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('Não foi possível enviar a proposta. Tente novamente.');
   });
 
+  it('does not show cancel for the author on a pending_verification problem', async () => {
+    mockLoggedIn({ id: 'author-1', email: 'a@b.com', role: 'individual' });
+    server.use(
+      http.get('/api/problems/abc', () => HttpResponse.json(problem({ status: 'pending_verification' }))),
+    );
+
+    renderWithProviders(<ProblemDetailPage />, { route: '/problems/abc', path: '/problems/:id' });
+
+    await screen.findByText('Buraco na rua');
+    expect(screen.queryByRole('button', { name: 'Cancelar' })).not.toBeInTheDocument();
+  });
+
+  it('does not show vote for a non-author on a resolved problem', async () => {
+    mockLoggedIn({ id: 'voter-1', email: 'v@b.com', role: 'individual' });
+    server.use(http.get('/api/problems/abc', () => HttpResponse.json(problem({ status: 'resolved' }))));
+
+    renderWithProviders(<ProblemDetailPage />, { route: '/problems/abc', path: '/problems/:id' });
+
+    await screen.findByText('Buraco na rua');
+    expect(screen.queryByRole('button', { name: 'Votar' })).not.toBeInTheDocument();
+  });
+
   it('shows a rating form for the author on a resolved, unrated problem', async () => {
     mockLoggedIn({ id: 'author-1', email: 'a@b.com', role: 'individual' });
     server.use(http.get('/api/problems/abc', () => HttpResponse.json(problem({ status: 'resolved' }))));

@@ -12,6 +12,20 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+// Shared across all AuthProvider instances (and StrictMode's double-invoke) so that
+// concurrent refresh attempts share one in-flight request instead of each firing its
+// own call against the single-use refresh token.
+let inFlightRefresh: Promise<AuthResult> | null = null;
+
+function refreshOnce(): Promise<AuthResult> {
+  if (!inFlightRefresh) {
+    inFlightRefresh = refreshSession().finally(() => {
+      inFlightRefresh = null;
+    });
+  }
+  return inFlightRefresh;
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -20,7 +34,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     setRefreshHandler(async () => {
       try {
-        const result = await refreshSession();
+        const result = await refreshOnce();
         setAccessToken(result.accessToken);
         setUser(result.user);
         return result.accessToken;
@@ -31,7 +45,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     });
 
-    refreshSession()
+    refreshOnce()
       .then((result) => {
         setAccessToken(result.accessToken);
         setUser(result.user);

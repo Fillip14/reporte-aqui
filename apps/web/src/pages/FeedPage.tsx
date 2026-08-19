@@ -11,6 +11,16 @@ const STATUS_LABELS: Record<ProblemStatus, string> = {
   cancelled: 'Cancelado',
 };
 
+const VOTE_ERROR_MESSAGE = 'Não foi possível registrar o voto. Tente novamente.';
+
+function canVoteOn(problem: { authorId: string; status: ProblemStatus }, userId: string | undefined): boolean {
+  return (
+    !!userId &&
+    userId !== problem.authorId &&
+    (problem.status === 'open' || problem.status === 'pending_verification')
+  );
+}
+
 export default function FeedPage() {
   const [status, setStatus] = useState<ProblemStatus | ''>('');
   const [q, setQ] = useState('');
@@ -61,6 +71,7 @@ export default function FeedPage() {
       {isLoading && <p>Carregando...</p>}
       {isError && <p role="alert">Não foi possível carregar os problemas.</p>}
       {!isLoading && !isError && data?.items.length === 0 && <p>Nenhum problema encontrado.</p>}
+      {voteMutation.isError && <p role="alert">{VOTE_ERROR_MESSAGE}</p>}
 
       <ul>
         {data?.items.map((problem) => (
@@ -68,7 +79,7 @@ export default function FeedPage() {
             <Link to={`/problems/${problem.id}`}>{problem.title}</Link>
             <span> — {STATUS_LABELS[problem.status]}</span>
             <span> — {problem.voteCount} voto(s)</span>
-            {user && user.id !== problem.authorId && (
+            {canVoteOn(problem, user?.id) && (
               <button onClick={() => voteMutation.mutate(problem.id)} disabled={voteMutation.isPending}>
                 {problem.hasVoted ? 'Remover voto' : 'Votar'}
               </button>

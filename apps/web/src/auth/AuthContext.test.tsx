@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { StrictMode } from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -52,6 +53,30 @@ describe('AuthProvider boot', () => {
 
     renderConsumer();
     await waitFor(() => expect(screen.getByText('logged in: a@b.com')).toBeInTheDocument());
+  });
+
+  it('deduplicates concurrent boot refresh calls under StrictMode double-invoke', async () => {
+    let refreshCallCount = 0;
+    server.use(
+      http.post('/api/auth/refresh', async () => {
+        refreshCallCount += 1;
+        return HttpResponse.json({ user: { id: '1', email: 'a@b.com', role: 'individual' }, accessToken: 'token' });
+      }),
+    );
+
+    const queryClient = new QueryClient();
+    render(
+      <StrictMode>
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
+            <Consumer />
+          </AuthProvider>
+        </QueryClientProvider>
+      </StrictMode>,
+    );
+
+    await waitFor(() => expect(screen.getByText('logged in: a@b.com')).toBeInTheDocument());
+    expect(refreshCallCount).toBe(1);
   });
 });
 

@@ -6,10 +6,12 @@ import ProfilePage from './pages/ProfilePage';
 import ProblemDetailPage from './pages/ProblemDetailPage';
 import NewProblemPage from './pages/NewProblemPage';
 import { ProtectedRoute } from './auth/ProtectedRoute';
+import NavBar from './components/NavBar';
 
 export default function App() {
   return (
     <BrowserRouter>
+      <NavBar />
       <Routes>
         <Route path="/" element={<FeedPage />} />
         <Route path="/register" element={<RegisterPage />} />

@@ -71,8 +71,9 @@ export default function ProblemDetailPage() {
   if (!problem) return <p>Problema não encontrado.</p>;
 
   const isAuthor = user?.id === problem.authorId;
-  const canVote = !!user && !isAuthor;
-  const canCancel = isAuthor && (problem.status === 'open' || problem.status === 'pending_verification');
+  const canVote =
+    !!user && !isAuthor && (problem.status === 'open' || problem.status === 'pending_verification');
+  const canCancel = isAuthor && problem.status === 'open';
   const canResolve = isAuthor && problem.status === 'open';
   const canPropose = !!user && !isAuthor && problem.status === 'open';
   const canRate = isAuthor && problem.status === 'resolved' && !problem.rating;

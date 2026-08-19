@@ -56,6 +56,35 @@ describe('FeedPage', () => {
     expect(screen.queryByRole('button', { name: 'Votar' })).not.toBeInTheDocument();
   });
 
+  it('hides the vote button for a non-author on a resolved problem', async () => {
+    mockLoggedIn({ id: 'voter-1', email: 'v@b.com', role: 'individual' });
+    server.use(
+      http.get('/api/problems', () =>
+        HttpResponse.json({ items: [{ ...sampleProblem, status: 'resolved' }], page: 1, limit: 20, total: 1 }),
+      ),
+    );
+
+    renderWithProviders(<FeedPage />, { route: '/' });
+
+    await screen.findByText('Buraco na rua');
+    expect(screen.queryByRole('button', { name: 'Votar' })).not.toBeInTheDocument();
+  });
+
+  it('shows an error alert when voting fails', async () => {
+    mockLoggedIn({ id: 'voter-1', email: 'v@b.com', role: 'individual' });
+    server.use(
+      http.get('/api/problems', () => HttpResponse.json({ items: [sampleProblem], page: 1, limit: 20, total: 1 })),
+      http.post('/api/problems/abc/vote', () => HttpResponse.json({ error: 'unknown_error' }, { status: 500 })),
+    );
+
+    renderWithProviders(<FeedPage />, { route: '/' });
+
+    const voteButton = await screen.findByRole('button', { name: 'Votar' });
+    await userEvent.click(voteButton);
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Não foi possível registrar o voto. Tente novamente.');
+  });
+
   it('lets a non-author vote', async () => {
     mockLoggedIn({ id: 'voter-1', email: 'v@b.com', role: 'individual' });
     let voteCalled = false;
