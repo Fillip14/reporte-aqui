@@ -4,6 +4,7 @@ import LoginPage from './pages/LoginPage';
 import FeedPage from './pages/FeedPage';
 import ProfilePage from './pages/ProfilePage';
 import ProblemDetailPage from './pages/ProblemDetailPage';
+import NewProblemPage from './pages/NewProblemPage';
 import { ProtectedRoute } from './auth/ProtectedRoute';
 
 export default function App() {
@@ -18,6 +19,14 @@ export default function App() {
           element={
             <ProtectedRoute>
               <ProfilePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/problems/new"
+          element={
+            <ProtectedRoute>
+              <NewProblemPage />
             </ProtectedRoute>
           }
         />
