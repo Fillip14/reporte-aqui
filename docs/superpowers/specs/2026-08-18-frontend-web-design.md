@@ -77,12 +77,12 @@ Mapeamento 1:1 com a API existente:
 
 | Rota | Tela | API usada |
 |---|---|---|
-| `/registro` | Escolha individual/empresa + formulário | `POST /register/individual`, `POST /register/company` |
+| `/register` | Escolha individual/empresa + formulário | `POST /register/individual`, `POST /register/company` |
 | `/login` | Login | `POST /login` |
 | `/` | Feed de problemas (filtro de status, busca, ordenação) | `GET /problems` |
-| `/problemas/:id` | Detalhe (mídia, votos, status, propostas, avaliação) | `GET /problems/:id`, `POST /:id/vote`, `POST /:id/cancel`, `POST /:id/resolve`, `POST /:id/resolution-proposals`, `POST /:id/rating` |
-| `/problemas/novo` | Criar problema | `POST /media/upload-url` (+ PUT no R2) → `POST /problems` |
-| `/perfil` | Ver/editar cadastro, excluir conta, logout | `GET/PATCH/DELETE /me`, `POST /logout` |
+| `/problems/:id` | Detalhe (mídia, votos, status, propostas, avaliação) | `GET /problems/:id`, `POST /:id/vote`, `POST /:id/cancel`, `POST /:id/resolve`, `POST /:id/resolution-proposals`, `POST /:id/rating` |
+| `/problems/new` | Criar problema | `POST /media/upload-url` (+ PUT no R2) → `POST /problems` |
+| `/profile` | Ver/editar cadastro, excluir conta, logout | `GET/PATCH/DELETE /me`, `POST /logout` |
 
 Regras de exibição condicional na tela de detalhe (derivadas do modelo
 já definido em `2026-08-17-problems-design.md`):
@@ -115,6 +115,6 @@ nos testes de componente — sem bater na API real.
 ## Convenções
 
 Segue a convenção já estabelecida no projeto: toda nomenclatura de
-código em inglês (pastas, arquivos, variáveis, funções, componentes) —
-só as rotas de URL (`/problemas/:id` etc.) e o texto da UI ficam em
-português, por serem voltados ao usuário final.
+código em inglês (pastas, arquivos, variáveis, funções, componentes,
+rotas de URL). Só o texto da UI (labels, mensagens) fica em português,
+por ser voltado ao usuário final.
