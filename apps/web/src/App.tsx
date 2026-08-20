@@ -12,28 +12,30 @@ export default function App() {
   return (
     <BrowserRouter>
       <NavBar />
-      <Routes>
-        <Route path="/" element={<FeedPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route
-          path="/profile"
-          element={
-            <ProtectedRoute>
-              <ProfilePage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/problems/new"
-          element={
-            <ProtectedRoute>
-              <NewProblemPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route path="/problems/:id" element={<ProblemDetailPage />} />
-      </Routes>
+      <main className="mx-auto max-w-3xl px-4 py-8">
+        <Routes>
+          <Route path="/" element={<FeedPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <ProfilePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/problems/new"
+            element={
+              <ProtectedRoute>
+                <NewProblemPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/problems/:id" element={<ProblemDetailPage />} />
+        </Routes>
+      </main>
     </BrowserRouter>
   );
 }

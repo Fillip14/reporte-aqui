@@ -3,6 +3,9 @@ import { useNavigate, Link } from 'react-router-dom';
 import { login } from '../api/auth';
 import { ApiError } from '../api/client';
 import { useAuth } from '../auth/AuthContext';
+import Button from '../components/Button';
+import Alert from '../components/Alert';
+import { LABEL_CLASSES, INPUT_CLASSES } from '../lib/formClasses';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -32,30 +35,49 @@ export default function LoginPage() {
   }
 
   return (
-    <div>
-      <h1>Entrar</h1>
-      <form onSubmit={handleSubmit}>
-        <label htmlFor="email">E-mail</label>
-        <input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+    <div className="mx-auto max-w-sm">
+      <h1 className="text-2xl font-semibold text-slate-900">Entrar</h1>
+      <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+        <div>
+          <label htmlFor="email" className={LABEL_CLASSES}>
+            E-mail
+          </label>
+          <input
+            id="email"
+            type="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className={INPUT_CLASSES}
+          />
+        </div>
 
-        <label htmlFor="password">Senha</label>
-        <input
-          id="password"
-          type="password"
-          required
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
+        <div>
+          <label htmlFor="password" className={LABEL_CLASSES}>
+            Senha
+          </label>
+          <input
+            id="password"
+            type="password"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className={INPUT_CLASSES}
+          />
+        </div>
 
-        {error && <p role="alert">{error}</p>}
+        {error && <Alert>{error}</Alert>}
 
-        <button type="submit" disabled={isSubmitting}>
+        <Button type="submit" disabled={isSubmitting} className="w-full">
           Entrar
-        </button>
+        </Button>
       </form>
 
-      <p>
-        Não tem conta? <Link to="/register">Criar conta</Link>
+      <p className="mt-4 text-sm text-slate-600">
+        Não tem conta?{' '}
+        <Link to="/register" className="font-medium text-indigo-600 hover:text-indigo-700">
+          Criar conta
+        </Link>
       </p>
     </div>
   );

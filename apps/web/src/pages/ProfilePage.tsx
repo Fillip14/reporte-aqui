@@ -4,6 +4,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getMe, updateMeIndividual, updateMeCompany, deleteMe } from '../api/me';
 import { ApiError } from '../api/client';
 import { useAuth } from '../auth/AuthContext';
+import Button from '../components/Button';
+import Alert from '../components/Alert';
+import { LABEL_CLASSES, INPUT_CLASSES } from '../lib/formClasses';
 
 const VERIFICATION_LABELS = {
   pending: 'Verificação pendente',
@@ -68,61 +71,91 @@ export default function ProfilePage() {
     }
   }
 
-  if (isLoading) return <p>Carregando...</p>;
-  if (!profile) return <p>Não foi possível carregar o perfil.</p>;
+  if (isLoading) return <p className="text-sm text-slate-500">Carregando...</p>;
+  if (!profile) return <p className="text-sm text-slate-500">Não foi possível carregar o perfil.</p>;
 
   return (
-    <div>
-      <h1>Meu perfil</h1>
-      <p>{profile.email}</p>
+    <div className="mx-auto max-w-lg">
+      <h1 className="text-2xl font-semibold text-slate-900">Meu perfil</h1>
+      <p className="mt-1 text-sm text-slate-500">{profile.email}</p>
 
-      {profile.companyProfile && <p>{VERIFICATION_LABELS[profile.companyProfile.verificationStatus]}</p>}
+      {profile.companyProfile && (
+        <p className="mt-2 inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800">
+          {VERIFICATION_LABELS[profile.companyProfile.verificationStatus]}
+        </p>
+      )}
 
       {profile.role !== 'admin' && (
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="mt-6 space-y-4 rounded-xl border border-slate-200 bg-white p-6">
           {profile.role === 'individual' && (
-            <>
-              <label htmlFor="fullName">Nome completo</label>
-              <input id="fullName" required value={fullName} onChange={(e) => setFullName(e.target.value)} />
-            </>
+            <div>
+              <label htmlFor="fullName" className={LABEL_CLASSES}>
+                Nome completo
+              </label>
+              <input
+                id="fullName"
+                required
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                className={INPUT_CLASSES}
+              />
+            </div>
           )}
 
           {profile.role === 'company' && (
             <>
-              <label htmlFor="companyName">Nome da empresa</label>
-              <input
-                id="companyName"
-                required
-                value={companyName}
-                onChange={(e) => setCompanyName(e.target.value)}
-              />
+              <div>
+                <label htmlFor="companyName" className={LABEL_CLASSES}>
+                  Nome da empresa
+                </label>
+                <input
+                  id="companyName"
+                  required
+                  value={companyName}
+                  onChange={(e) => setCompanyName(e.target.value)}
+                  className={INPUT_CLASSES}
+                />
+              </div>
 
-              <label htmlFor="cnpj">CNPJ</label>
-              <input
-                id="cnpj"
-                required
-                pattern="\d{14}"
-                maxLength={14}
-                inputMode="numeric"
-                value={cnpj}
-                onChange={(e) => setCnpj(e.target.value)}
-              />
+              <div>
+                <label htmlFor="cnpj" className={LABEL_CLASSES}>
+                  CNPJ
+                </label>
+                <input
+                  id="cnpj"
+                  required
+                  pattern="\d{14}"
+                  maxLength={14}
+                  inputMode="numeric"
+                  value={cnpj}
+                  onChange={(e) => setCnpj(e.target.value)}
+                  className={INPUT_CLASSES}
+                />
+              </div>
             </>
           )}
 
-          {updateMutation.isError && <p role="alert">{updateErrorMessage(updateMutation.error)}</p>}
+          {updateMutation.isError && <Alert>{updateErrorMessage(updateMutation.error)}</Alert>}
 
-          <button type="submit" disabled={updateMutation.isPending}>
+          <Button type="submit" disabled={updateMutation.isPending}>
             Salvar alterações
-          </button>
+          </Button>
         </form>
       )}
 
-      <button onClick={handleLogout}>Sair</button>
-      <button onClick={handleDelete} disabled={deleteMutation.isPending}>
-        Excluir conta
-      </button>
-      {deleteMutation.isError && <p role="alert">{DELETE_ERROR_MESSAGE}</p>}
+      <div className="mt-6 flex items-center justify-between rounded-xl border border-slate-200 bg-white p-6">
+        <Button variant="secondary" onClick={handleLogout}>
+          Sair
+        </Button>
+        <Button variant="danger" onClick={handleDelete} disabled={deleteMutation.isPending}>
+          Excluir conta
+        </Button>
+      </div>
+      {deleteMutation.isError && (
+        <div className="mt-3">
+          <Alert>{DELETE_ERROR_MESSAGE}</Alert>
+        </div>
+      )}
     </div>
   );
 }

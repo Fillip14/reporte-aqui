@@ -8,17 +8,13 @@ import {
   resolveProblem,
   createResolutionProposal,
   rateResolution,
-  type ProblemStatus,
 } from '../api/problems';
 import { uploadMedia } from '../api/media';
 import { useAuth } from '../auth/AuthContext';
-
-const STATUS_LABELS: Record<ProblemStatus, string> = {
-  open: 'Aberto',
-  pending_verification: 'Aguardando verificação',
-  resolved: 'Resolvido',
-  cancelled: 'Cancelado',
-};
+import Button from '../components/Button';
+import Alert from '../components/Alert';
+import StatusBadge from '../components/StatusBadge';
+import { LABEL_CLASSES, INPUT_CLASSES } from '../lib/formClasses';
 
 const VOTE_ERROR_MESSAGE = 'Não foi possível registrar o voto. Tente novamente.';
 const CANCEL_ERROR_MESSAGE = 'Não foi possível cancelar o problema. Tente novamente.';
@@ -67,8 +63,8 @@ export default function ProblemDetailPage() {
     onSuccess: invalidate,
   });
 
-  if (isLoading) return <p>Carregando...</p>;
-  if (!problem) return <p>Problema não encontrado.</p>;
+  if (isLoading) return <p className="text-sm text-slate-500">Carregando...</p>;
+  if (!problem) return <p className="text-sm text-slate-500">Problema não encontrado.</p>;
 
   const isAuthor = user?.id === problem.authorId;
   const canVote =
@@ -90,64 +86,83 @@ export default function ProblemDetailPage() {
 
   return (
     <div>
-      <p>
-        <Link to="/">Voltar</Link>
-      </p>
-      <h1>{problem.title}</h1>
-      <p>Status: {STATUS_LABELS[problem.status]}</p>
-      <p>{problem.description}</p>
-      <p>Local: {problem.location}</p>
-      <p>{problem.voteCount} voto(s)</p>
+      <Link to="/" className="text-sm font-medium text-indigo-600 hover:text-indigo-700">
+        ← Voltar
+      </Link>
 
-      <ul>
-        {problem.media.map((m) => (
-          <li key={m.id}>
-            {m.mediaType === 'image' ? <img src={m.url} alt={problem.title} /> : <video src={m.url} controls />}
-          </li>
-        ))}
-      </ul>
+      <div className="mt-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="flex flex-wrap items-center gap-3">
+          <h1 className="text-2xl font-semibold text-slate-900">{problem.title}</h1>
+          <StatusBadge status={problem.status} />
+        </div>
+        <p className="mt-3 whitespace-pre-wrap text-slate-700">{problem.description}</p>
+        <p className="mt-3 text-sm text-slate-500">Local: {problem.location}</p>
+        <p className="text-sm text-slate-500">{problem.voteCount} voto(s)</p>
 
-      {canVote && (
-        <>
-          <button onClick={() => voteMutation.mutate()} disabled={voteMutation.isPending}>
-            {problem.hasVoted ? 'Remover voto' : 'Votar'}
-          </button>
-          {voteMutation.isError && <p role="alert">{VOTE_ERROR_MESSAGE}</p>}
-        </>
-      )}
+        {problem.media.length > 0 && (
+          <ul className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+            {problem.media.map((m) => (
+              <li key={m.id} className="overflow-hidden rounded-lg border border-slate-200">
+                {m.mediaType === 'image' ? (
+                  <img src={m.url} alt={problem.title} className="h-32 w-full object-cover" />
+                ) : (
+                  <video src={m.url} controls className="h-32 w-full object-cover" />
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
 
-      {canCancel && (
-        <>
-          <button onClick={() => cancelMutation.mutate()} disabled={cancelMutation.isPending}>
-            Cancelar
-          </button>
-          {cancelMutation.isError && <p role="alert">{CANCEL_ERROR_MESSAGE}</p>}
-        </>
-      )}
+        <div className="mt-5 flex flex-wrap gap-3">
+          {canVote && (
+            <Button variant="secondary" onClick={() => voteMutation.mutate()} disabled={voteMutation.isPending}>
+              {problem.hasVoted ? 'Remover voto' : 'Votar'}
+            </Button>
+          )}
 
-      {canResolve && (
-        <>
-          <button onClick={() => resolveMutation.mutate()} disabled={resolveMutation.isPending}>
-            Marcar como resolvido
-          </button>
-          {resolveMutation.isError && <p role="alert">{RESOLVE_ERROR_MESSAGE}</p>}
-        </>
-      )}
+          {canCancel && (
+            <Button variant="danger" onClick={() => cancelMutation.mutate()} disabled={cancelMutation.isPending}>
+              Cancelar
+            </Button>
+          )}
+
+          {canResolve && (
+            <Button onClick={() => resolveMutation.mutate()} disabled={resolveMutation.isPending}>
+              Marcar como resolvido
+            </Button>
+          )}
+        </div>
+
+        <div className="mt-2 space-y-2">
+          {voteMutation.isError && <Alert>{VOTE_ERROR_MESSAGE}</Alert>}
+          {cancelMutation.isError && <Alert>{CANCEL_ERROR_MESSAGE}</Alert>}
+          {resolveMutation.isError && <Alert>{RESOLVE_ERROR_MESSAGE}</Alert>}
+        </div>
+      </div>
 
       {canPropose && (
-        <form onSubmit={handleProposalSubmit}>
-          <h2>Propor resolução</h2>
-          <label htmlFor="proposalFile">Foto de evidência</label>
-          <input
-            id="proposalFile"
-            type="file"
-            accept="image/*,video/*"
-            onChange={(e) => setProposalFile(e.target.files?.[0] ?? null)}
-          />
-          {proposalError && <p role="alert">{proposalError}</p>}
-          <button type="submit" disabled={proposalMutation.isPending}>
+        <form onSubmit={handleProposalSubmit} className="mt-6 rounded-xl border border-slate-200 bg-white p-6">
+          <h2 className="text-lg font-semibold text-slate-900">Propor resolução</h2>
+          <div className="mt-3">
+            <label htmlFor="proposalFile" className={LABEL_CLASSES}>
+              Foto de evidência
+            </label>
+            <input
+              id="proposalFile"
+              type="file"
+              accept="image/*,video/*"
+              onChange={(e) => setProposalFile(e.target.files?.[0] ?? null)}
+              className="mt-1 block w-full text-sm text-slate-700"
+            />
+          </div>
+          {proposalError && (
+            <div className="mt-3">
+              <Alert>{proposalError}</Alert>
+            </div>
+          )}
+          <Button type="submit" disabled={proposalMutation.isPending} className="mt-4">
             Enviar proposta
-          </button>
+          </Button>
         </form>
       )}
 
@@ -157,33 +172,58 @@ export default function ProblemDetailPage() {
             e.preventDefault();
             ratingMutation.mutate();
           }}
+          className="mt-6 rounded-xl border border-slate-200 bg-white p-6"
         >
-          <h2>Avaliar resolução</h2>
-          <label htmlFor="score">Nota</label>
-          <select id="score" value={score} onChange={(e) => setScore(Number(e.target.value))}>
-            {[1, 2, 3, 4, 5].map((n) => (
-              <option key={n} value={n}>
-                {n}
-              </option>
-            ))}
-          </select>
+          <h2 className="text-lg font-semibold text-slate-900">Avaliar resolução</h2>
+          <div className="mt-3">
+            <label htmlFor="score" className={LABEL_CLASSES}>
+              Nota
+            </label>
+            <select
+              id="score"
+              value={score}
+              onChange={(e) => setScore(Number(e.target.value))}
+              className={INPUT_CLASSES}
+            >
+              {[1, 2, 3, 4, 5].map((n) => (
+                <option key={n} value={n}>
+                  {n}
+                </option>
+              ))}
+            </select>
+          </div>
 
-          <label htmlFor="comment">Comentário (opcional)</label>
-          <textarea id="comment" maxLength={1000} value={comment} onChange={(e) => setComment(e.target.value)} />
+          <div className="mt-3">
+            <label htmlFor="comment" className={LABEL_CLASSES}>
+              Comentário (opcional)
+            </label>
+            <textarea
+              id="comment"
+              maxLength={1000}
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              className={INPUT_CLASSES}
+              rows={3}
+            />
+          </div>
 
-          {ratingMutation.isError && <p role="alert">{RATING_ERROR_MESSAGE}</p>}
+          {ratingMutation.isError && (
+            <div className="mt-3">
+              <Alert>{RATING_ERROR_MESSAGE}</Alert>
+            </div>
+          )}
 
-          <button type="submit" disabled={ratingMutation.isPending}>
+          <Button type="submit" disabled={ratingMutation.isPending} className="mt-4">
             Enviar avaliação
-          </button>
+          </Button>
         </form>
       )}
 
       {problem.status === 'resolved' && problem.rating && (
-        <div>
-          <h2>Avaliação</h2>
-          <p>Nota: {problem.rating.score}/5</p>
-          {problem.rating.comment && <p>{problem.rating.comment}</p>}
+        <div className="mt-6 rounded-xl border border-slate-200 bg-white p-6">
+          <h2 className="text-lg font-semibold text-slate-900">Avaliação</h2>
+          <p className="mt-2 text-sm text-slate-700">Nota: {problem.rating.score}/5</p>
+          {problem.rating.comment && <p className="mt-1 text-sm text-slate-700">{problem.rating.comment}</p>}
         </div>
       )}
     </div>
