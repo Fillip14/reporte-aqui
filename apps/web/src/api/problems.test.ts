@@ -57,6 +57,18 @@ describe('problems api', () => {
     await listProblems();
   });
 
+  it('listProblems includes companyId when set', async () => {
+    server.use(
+      http.get('/api/problems', ({ request }) => {
+        const url = new URL(request.url);
+        expect(url.searchParams.get('companyId')).toBe('c1');
+        return HttpResponse.json({ items: [], page: 1, limit: 20, total: 0 });
+      }),
+    );
+
+    await listProblems({ companyId: 'c1' });
+  });
+
   it('getProblem fetches a single problem by id', async () => {
     server.use(http.get('/api/problems/abc', () => HttpResponse.json(sample)));
 
@@ -129,5 +141,23 @@ describe('problems api', () => {
       media: [{ objectKey: 'u1/a.jpg', mediaType: 'image' }],
     });
     expect(problem.id).toBe('abc');
+  });
+
+  it('createProblem includes responsibleCompanyId when set', async () => {
+    server.use(
+      http.post('/api/problems', async ({ request }) => {
+        const body = (await request.json()) as { responsibleCompanyId?: string };
+        expect(body.responsibleCompanyId).toBe('c1');
+        return HttpResponse.json(sample, { status: 201 });
+      }),
+    );
+
+    await createProblem({
+      title: 'Buraco na rua',
+      description: 'd'.repeat(20),
+      location: 'Rua X',
+      media: [{ objectKey: 'u1/a.jpg', mediaType: 'image' }],
+      responsibleCompanyId: 'c1',
+    });
   });
 });

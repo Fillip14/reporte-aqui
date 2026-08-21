@@ -1,4 +1,5 @@
 import { apiFetch } from './client';
+import type { Company } from './companies';
 
 export type ProblemStatus = 'open' | 'pending_verification' | 'resolved' | 'cancelled';
 export type MediaType = 'image' | 'video';
@@ -30,6 +31,7 @@ export interface ProblemListItem {
   media: ProblemMedia[];
   voteCount: number;
   hasVoted: boolean;
+  responsibleCompany: Company | null;
 }
 
 export interface ProblemDetail extends ProblemListItem {
@@ -42,6 +44,7 @@ export interface ListProblemsParams {
   sort?: 'newest' | 'top';
   page?: number;
   limit?: number;
+  companyId?: string;
 }
 
 export interface ListProblemsResult {
@@ -58,6 +61,7 @@ export function listProblems(params: ListProblemsParams = {}): Promise<ListProbl
   if (params.sort) query.set('sort', params.sort);
   if (params.page) query.set('page', String(params.page));
   if (params.limit) query.set('limit', String(params.limit));
+  if (params.companyId) query.set('companyId', params.companyId);
   const qs = query.toString();
   return apiFetch<ListProblemsResult>(`/problems${qs ? `?${qs}` : ''}`);
 }
@@ -97,6 +101,7 @@ export function createProblem(input: {
   description: string;
   location: string;
   media: { objectKey: string; mediaType: MediaType }[];
+  responsibleCompanyId?: string;
 }): Promise<ProblemDetail> {
   return apiFetch<ProblemDetail>('/problems', {
     method: 'POST',
