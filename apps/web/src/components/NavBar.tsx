@@ -30,6 +30,11 @@ export default function NavBar() {
               <Link to="/problems/new" className={NAV_LINK_CLASSES}>
                 Novo problema
               </Link>
+              {user.role === 'admin' && (
+                <Link to="/admin" className={NAV_LINK_CLASSES}>
+                  Admin
+                </Link>
+              )}
               <Button variant="secondary" onClick={handleLogout}>
                 Sair
               </Button>

@@ -28,4 +28,28 @@ describe('ProtectedRoute', () => {
 
     await waitFor(() => expect(screen.getByText('secret content')).toBeInTheDocument());
   });
+
+  it('redirects away when the required role does not match', async () => {
+    mockLoggedIn({ id: '1', email: 'a@b.com', role: 'individual' });
+    renderWithProviders(
+      <ProtectedRoute role="admin">
+        <p>admin content</p>
+      </ProtectedRoute>,
+      { route: '/admin', path: '/admin' },
+    );
+
+    await waitFor(() => expect(screen.queryByText('admin content')).not.toBeInTheDocument());
+  });
+
+  it('renders children when the required role matches', async () => {
+    mockLoggedIn({ id: '1', email: 'a@b.com', role: 'admin' });
+    renderWithProviders(
+      <ProtectedRoute role="admin">
+        <p>admin content</p>
+      </ProtectedRoute>,
+      { route: '/admin', path: '/admin' },
+    );
+
+    await waitFor(() => expect(screen.getByText('admin content')).toBeInTheDocument());
+  });
 });

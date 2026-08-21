@@ -1,11 +1,15 @@
 import { prisma } from '../../lib/prisma.js';
+import { publicMediaUrl } from '../../lib/r2.js';
 
 export class ProposalNotFoundError extends Error {}
 export class ProposalAlreadyReviewedError extends Error {}
 export class ProblemStateChangedError extends Error {}
 
 export async function listPendingCompanies() {
-  return prisma.companyProfile.findMany({ where: { verificationStatus: 'pending' } });
+  return prisma.companyProfile.findMany({
+    where: { verificationStatus: 'pending' },
+    include: { user: { select: { email: true } } },
+  });
 }
 
 export async function approveCompany(companyProfileId: string, adminId: string) {
@@ -33,7 +37,11 @@ export async function rejectCompany(companyProfileId: string, adminId: string, r
 }
 
 export async function listPendingResolutionProposals() {
-  return prisma.resolutionProposal.findMany({ where: { status: 'pending' }, include: { problem: true } });
+  const proposals = await prisma.resolutionProposal.findMany({
+    where: { status: 'pending' },
+    include: { problem: true },
+  });
+  return proposals.map((proposal) => ({ ...proposal, mediaUrl: publicMediaUrl(proposal.objectKey) }));
 }
 
 export async function approveResolutionProposal(proposalId: string, adminId: string) {

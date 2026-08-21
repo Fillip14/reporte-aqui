@@ -54,6 +54,7 @@ describe('admin company verification routes', () => {
     expect(res.status).toBe(200);
     expect(res.body).toHaveLength(1);
     expect(res.body[0].cnpj).toBe('12345678000199');
+    expect(res.body[0].user.email).toBe('contato@empresa.com');
   });
 
   it('approves a pending company', async () => {
@@ -133,6 +134,7 @@ describe('admin resolution proposal review routes', () => {
 
     expect(res.status).toBe(200);
     expect(res.body).toHaveLength(1);
+    expect(res.body[0].mediaUrl).toContain(res.body[0].objectKey);
   });
 
   it('approves a proposal and resolves the linked problem', async () => {

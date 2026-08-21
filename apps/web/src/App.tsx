@@ -5,6 +5,7 @@ import FeedPage from './pages/FeedPage';
 import ProfilePage from './pages/ProfilePage';
 import ProblemDetailPage from './pages/ProblemDetailPage';
 import NewProblemPage from './pages/NewProblemPage';
+import AdminPage from './pages/AdminPage';
 import { ProtectedRoute } from './auth/ProtectedRoute';
 import NavBar from './components/NavBar';
 
@@ -34,6 +35,14 @@ export default function App() {
             }
           />
           <Route path="/problems/:id" element={<ProblemDetailPage />} />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute role="admin">
+                <AdminPage />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </main>
     </BrowserRouter>
