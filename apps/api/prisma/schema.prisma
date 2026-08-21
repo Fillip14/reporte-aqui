@@ -89,6 +89,8 @@ model CompanyProfile {
   user       User  @relation("CompanyOwner", fields: [userId], references: [id])
   verifiedBy User? @relation("CompanyVerifiedBy", fields: [verifiedById], references: [id])
 
+  responsibleForProblems Problem[] @relation("ProblemResponsibleCompany")
+
   @@map("company_profiles")
 }
 
@@ -107,19 +109,21 @@ model RefreshToken {
 }
 
 model Problem {
-  id           String        @id @default(uuid())
-  authorId     String
-  title        String
-  description  String
-  location     String
-  status       ProblemStatus @default(open)
-  resolvedAt   DateTime?
-  resolvedById String?
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  id                    String        @id @default(uuid())
+  authorId              String
+  title                 String
+  description           String
+  location              String
+  status                ProblemStatus @default(open)
+  resolvedAt            DateTime?
+  resolvedById          String?
+  responsibleCompanyId  String?
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
 
-  author     User  @relation("ProblemAuthor", fields: [authorId], references: [id])
-  resolvedBy User? @relation("ProblemResolvedBy", fields: [resolvedById], references: [id])
+  author             User            @relation("ProblemAuthor", fields: [authorId], references: [id])
+  resolvedBy         User?           @relation("ProblemResolvedBy", fields: [resolvedById], references: [id])
+  responsibleCompany CompanyProfile? @relation("ProblemResponsibleCompany", fields: [responsibleCompanyId], references: [id])
 
   media               ProblemMedia[]
   votes               ProblemVote[]
@@ -128,6 +132,7 @@ model Problem {
 
   @@index([authorId])
   @@index([status])
+  @@index([responsibleCompanyId])
   @@map("problems")
 }
 
