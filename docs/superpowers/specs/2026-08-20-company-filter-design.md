@@ -30,6 +30,17 @@ aprovada). O feed ganha um filtro por essa empresa.
 - Qualquer papel especial de moderação/resolução para a empresa
   responsável (ela continua sem privilégios além dos que já tem hoje
   como conta comum — votar, propor resolução).
+- Revalidar/limpar `responsibleCompanyId` quando a empresa deixa de
+  estar aprovada depois de já ter sido vinculada a um problema (ex:
+  admin rejeita a verificação depois, ou a empresa muda o CNPJ e volta
+  pra `pending`). `verificationStatus = approved` é checado só no
+  momento em que o vínculo é criado — depois disso o problema continua
+  mostrando aquela empresa como responsável indefinidamente, do mesmo
+  jeito que `authorId`/`resolvedById` continuam referenciando um
+  usuário mesmo que o status dele mude depois. Decisão consciente
+  (marcado como aceitável na revisão final do branch): é um registro
+  histórico de quem era responsável no momento, não uma verificação
+  ao vivo.
 
 ## Backend
 
