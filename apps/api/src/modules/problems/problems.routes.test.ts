@@ -24,6 +24,19 @@ function validProblemBody(authorId: string) {
   };
 }
 
+async function createApprovedCompany(email: string, companyName: string, cnpj: string) {
+  const res = await request(app).post('/auth/register/company').send({
+    email,
+    password: 'super-secret-1',
+    companyName,
+    cnpj,
+  });
+  const userId = res.body.user.id as string;
+  const profile = await prisma.companyProfile.findUniqueOrThrow({ where: { userId } });
+  await prisma.companyProfile.update({ where: { id: profile.id }, data: { verificationStatus: 'approved' } });
+  return profile.id as string;
+}
+
 describe('POST /problems', () => {
   beforeEach(async () => {
     await resetDb();
@@ -74,9 +87,53 @@ describe('POST /problems', () => {
     expect(res.status).toBe(403);
     expect(res.body.error).toBe('forbidden_object_key');
   });
+
+  it('creates a problem with a valid approved responsible company', async () => {
+    const { userId, token } = await createUserToken();
+    const companyId = await createApprovedCompany('empresa@example.com', 'Empresa Responsável LTDA', '12312312300011');
+    const body = { ...validProblemBody(userId), responsibleCompanyId: companyId };
+
+    const res = await request(app).post('/problems').set('Authorization', `Bearer ${token}`).send(body);
+
+    expect(res.status).toBe(201);
+    expect(res.body.responsibleCompany).toEqual({ id: companyId, companyName: 'Empresa Responsável LTDA' });
+  });
+
+  it('rejects a responsible company that does not exist', async () => {
+    const { userId, token } = await createUserToken();
+    const body = { ...validProblemBody(userId), responsibleCompanyId: '00000000-0000-0000-0000-000000000000' };
+
+    const res = await request(app).post('/problems').set('Authorization', `Bearer ${token}`).send(body);
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toBe('company_not_found');
+  });
+
+  it('rejects a responsible company that is not approved', async () => {
+    const { userId, token } = await createUserToken();
+    const pendingRes = await request(app).post('/auth/register/company').send({
+      email: 'pendente@example.com',
+      password: 'super-secret-1',
+      companyName: 'Empresa Pendente LTDA',
+      cnpj: '45645645600022',
+    });
+    const pendingProfile = await prisma.companyProfile.findUniqueOrThrow({
+      where: { userId: pendingRes.body.user.id },
+    });
+    const body = { ...validProblemBody(userId), responsibleCompanyId: pendingProfile.id };
+
+    const res = await request(app).post('/problems').set('Authorization', `Bearer ${token}`).send(body);
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toBe('company_not_found');
+  });
 });
 
-async function createProblem(token: string, authorId: string, overrides: Partial<ReturnType<typeof validProblemBody>> = {}) {
+async function createProblem(
+  token: string,
+  authorId: string,
+  overrides: Partial<ReturnType<typeof validProblemBody>> & { responsibleCompanyId?: string } = {},
+) {
   const res = await request(app)
     .post('/problems')
     .set('Authorization', `Bearer ${token}`)
@@ -154,6 +211,27 @@ describe('GET /problems', () => {
     expect(item.hasVoted).toBe(false);
     expect(item.voteCount).toBe(1);
   });
+
+  it('filters by responsible company', async () => {
+    const { userId, token } = await createUserToken();
+    const companyId = await createApprovedCompany('empresa2@example.com', 'Outra Empresa LTDA', '78978978900033');
+    await createProblem(token, userId, { responsibleCompanyId: companyId });
+    await createProblem(token, userId, { title: 'Problema sem empresa na via' });
+
+    const res = await request(app).get('/problems').query({ companyId });
+    expect(res.status).toBe(200);
+    expect(res.body.items).toHaveLength(1);
+    expect(res.body.items[0].responsibleCompany.id).toBe(companyId);
+  });
+
+  it('returns responsibleCompany: null when none is set', async () => {
+    const { userId, token } = await createUserToken();
+    await createProblem(token, userId);
+
+    const res = await request(app).get('/problems');
+    expect(res.status).toBe(200);
+    expect(res.body.items[0].responsibleCompany).toBeNull();
+  });
 });
 
 describe('GET /problems/:id', () => {
@@ -186,6 +264,16 @@ describe('GET /problems/:id', () => {
     expect(res.status).toBe(200);
     expect(res.body.hasVoted).toBe(true);
     expect(res.body.voteCount).toBe(1);
+  });
+
+  it('includes the responsible company when set', async () => {
+    const { userId, token } = await createUserToken();
+    const companyId = await createApprovedCompany('empresa3@example.com', 'Terceira Empresa LTDA', '65465465400044');
+    const problem = await createProblem(token, userId, { responsibleCompanyId: companyId });
+
+    const res = await request(app).get(`/problems/${problem.id}`);
+    expect(res.status).toBe(200);
+    expect(res.body.responsibleCompany).toEqual({ id: companyId, companyName: 'Terceira Empresa LTDA' });
   });
 });
 

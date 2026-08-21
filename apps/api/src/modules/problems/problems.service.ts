@@ -11,6 +11,7 @@ export class CannotActOnOwnProblemError extends Error {}
 export class PendingProposalExistsError extends Error {}
 export class RatingAlreadyExistsError extends Error {}
 export class ForbiddenObjectKeyError extends Error {}
+export class CompanyNotFoundError extends Error {}
 
 function assertObjectKeyOwnedBy(objectKey: string, userId: string) {
   if (!objectKey.startsWith(`${userId}/`)) throw new ForbiddenObjectKeyError();
@@ -21,15 +22,21 @@ export async function createProblem(authorId: string, input: CreateProblemInput)
     assertObjectKeyOwnedBy(item.objectKey, authorId);
   }
 
+  if (input.responsibleCompanyId) {
+    const company = await prisma.companyProfile.findUnique({ where: { id: input.responsibleCompanyId } });
+    if (!company || company.verificationStatus !== 'approved') throw new CompanyNotFoundError();
+  }
+
   return prisma.problem.create({
     data: {
       authorId,
       title: input.title,
       description: input.description,
       location: input.location,
+      responsibleCompanyId: input.responsibleCompanyId,
       media: { create: input.media },
     },
-    include: { media: true },
+    include: { media: true, responsibleCompany: { select: { id: true, companyName: true } } },
   });
 }
 
@@ -43,6 +50,7 @@ function withMediaUrls<T extends { media: { objectKey: string }[] }>(problem: T)
 export async function listProblems(query: ListProblemsQuery, viewerId?: string) {
   const where: Prisma.ProblemWhereInput = {
     ...(query.status ? { status: query.status } : {}),
+    ...(query.companyId ? { responsibleCompanyId: query.companyId } : {}),
     ...(query.q
       ? {
           OR: [
@@ -56,7 +64,11 @@ export async function listProblems(query: ListProblemsQuery, viewerId?: string) 
   const [problems, total] = await Promise.all([
     prisma.problem.findMany({
       where,
-      include: { media: true, _count: { select: { votes: true } } },
+      include: {
+        media: true,
+        responsibleCompany: { select: { id: true, companyName: true } },
+        _count: { select: { votes: true } },
+      },
       orderBy: query.sort === 'top' ? { votes: { _count: 'desc' } } : { createdAt: 'desc' },
       skip: (query.page - 1) * query.limit,
       take: query.limit,
@@ -81,7 +93,12 @@ export async function listProblems(query: ListProblemsQuery, viewerId?: string) 
 export async function getProblemById(problemId: string, viewerId?: string) {
   const problem = await prisma.problem.findUnique({
     where: { id: problemId },
-    include: { media: true, rating: true, _count: { select: { votes: true } } },
+    include: {
+      media: true,
+      rating: true,
+      responsibleCompany: { select: { id: true, companyName: true } },
+      _count: { select: { votes: true } },
+    },
   });
   if (!problem) throw new ProblemNotFoundError();
 

@@ -10,6 +10,7 @@ export const createProblemSchema = z.object({
   description: z.string().trim().min(20).max(5000),
   location: z.string().trim().min(5).max(300),
   media: z.array(mediaItemSchema).min(1).max(5),
+  responsibleCompanyId: z.string().uuid().optional(),
 });
 export type CreateProblemInput = z.infer<typeof createProblemSchema>;
 
@@ -19,6 +20,7 @@ export const listProblemsQuerySchema = z.object({
   sort: z.enum(['newest', 'top']).default('newest'),
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(50).default(20),
+  companyId: z.string().uuid().optional(),
 });
 export type ListProblemsQuery = z.infer<typeof listProblemsQuerySchema>;
 

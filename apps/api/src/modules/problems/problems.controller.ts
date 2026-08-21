@@ -4,7 +4,7 @@ import { createProblemSchema, rateResolutionSchema } from './problems.validation
 import * as problemsService from './problems.service.js';
 import { listProblemsQuerySchema, createResolutionProposalSchema } from './problems.validation.js';
 import { ProblemNotFoundError, NotProblemAuthorError, InvalidProblemStateError, RatingAlreadyExistsError } from './problems.service.js';
-import { CannotActOnOwnProblemError, PendingProposalExistsError, ForbiddenObjectKeyError } from './problems.service.js';
+import { CannotActOnOwnProblemError, PendingProposalExistsError, ForbiddenObjectKeyError, CompanyNotFoundError } from './problems.service.js';
 
 export async function createProblem(req: AuthenticatedRequest, res: Response) {
   const parsed = createProblemSchema.safeParse(req.body);
@@ -17,6 +17,7 @@ export async function createProblem(req: AuthenticatedRequest, res: Response) {
     return res.status(201).json(problem);
   } catch (err) {
     if (err instanceof ForbiddenObjectKeyError) return res.status(403).json({ error: 'forbidden_object_key' });
+    if (err instanceof CompanyNotFoundError) return res.status(400).json({ error: 'company_not_found' });
     throw err;
   }
 }
