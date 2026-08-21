@@ -197,6 +197,38 @@ describe('FeedPage', () => {
     expect(await screen.findByText(/Empresa X/)).toBeInTheDocument();
   });
 
+  it('shows an error message when the companies list fails to load', async () => {
+    mockLoggedOut();
+    server.use(
+      http.get('/api/problems', () => HttpResponse.json({ items: [], page: 1, limit: 20, total: 0 })),
+      http.get('/api/companies', () => HttpResponse.json({ error: 'server_error' }, { status: 500 })),
+    );
+
+    renderWithProviders(<FeedPage />, { route: '/' });
+
+    expect(await screen.findByText('Não foi possível carregar a lista de empresas.')).toBeInTheDocument();
+  });
+
+  it('truncates a long company name so it does not break the card layout', async () => {
+    mockLoggedOut();
+    const longName = 'Empresa de Distribuição de Energia Elétrica Regional do Sudeste LTDA';
+    server.use(
+      http.get('/api/problems', () =>
+        HttpResponse.json({
+          items: [{ ...sampleProblem, responsibleCompany: { id: 'c1', companyName: longName } }],
+          page: 1,
+          limit: 20,
+          total: 1,
+        }),
+      ),
+    );
+
+    renderWithProviders(<FeedPage />, { route: '/' });
+
+    const companyText = await screen.findByText(new RegExp(longName));
+    expect(companyText.className).toContain('truncate');
+  });
+
   it('shows an error message when the problems query fails', async () => {
     mockLoggedOut();
     server.use(http.get('/api/problems', () => HttpResponse.json({ error: 'server_error' }, { status: 500 })));

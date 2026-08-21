@@ -116,6 +116,9 @@ export default function NewProblemPage() {
               </option>
             ))}
           </select>
+          {companiesQuery.isError && (
+            <p className="mt-1 text-sm text-red-600">Não foi possível carregar a lista de empresas.</p>
+          )}
         </div>
 
         <div>

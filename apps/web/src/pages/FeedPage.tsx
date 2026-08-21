@@ -113,6 +113,9 @@ export default function FeedPage() {
               </option>
             ))}
           </select>
+          {companiesQuery.isError && (
+            <p className="mt-1 text-sm text-red-600">Não foi possível carregar a lista de empresas.</p>
+          )}
         </div>
       </form>
 
@@ -138,10 +141,12 @@ export default function FeedPage() {
               >
                 {problem.title}
               </Link>
-              <div className="mt-1 flex items-center gap-2 text-sm text-slate-500">
+              <div className="mt-1 flex min-w-0 items-center gap-2 text-sm text-slate-500">
                 <StatusBadge status={problem.status} />
-                <span>{problem.voteCount} voto(s)</span>
-                {problem.responsibleCompany && <span>· {problem.responsibleCompany.companyName}</span>}
+                <span className="shrink-0">{problem.voteCount} voto(s)</span>
+                {problem.responsibleCompany && (
+                  <span className="min-w-0 truncate">· {problem.responsibleCompany.companyName}</span>
+                )}
               </div>
             </div>
             {canVoteOn(problem, user?.id) && (

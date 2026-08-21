@@ -295,6 +295,37 @@ describe('GET /problems/:id', () => {
   });
 });
 
+describe('responsible company end-to-end flow', () => {
+  beforeEach(async () => {
+    await resetDb();
+  });
+
+  it('flows the same company through create, filter and detail', async () => {
+    const { userId, token } = await createUserToken();
+    const { companyId } = await createApprovedCompany(
+      'fluxo@example.com',
+      'Empresa Fluxo Completo LTDA',
+      '32132132100066',
+    );
+
+    const created = await createProblem(token, userId, { responsibleCompanyId: companyId });
+    expect(created.responsibleCompany).toEqual({ id: companyId, companyName: 'Empresa Fluxo Completo LTDA' });
+
+    const listRes = await request(app).get('/problems').query({ companyId });
+    expect(listRes.status).toBe(200);
+    expect(listRes.body.items).toHaveLength(1);
+    expect(listRes.body.items[0].id).toBe(created.id);
+    expect(listRes.body.items[0].responsibleCompany).toEqual({
+      id: companyId,
+      companyName: 'Empresa Fluxo Completo LTDA',
+    });
+
+    const detailRes = await request(app).get(`/problems/${created.id}`);
+    expect(detailRes.status).toBe(200);
+    expect(detailRes.body.responsibleCompany).toEqual({ id: companyId, companyName: 'Empresa Fluxo Completo LTDA' });
+  });
+});
+
 async function createAdminToken() {
   const admin = await prisma.user.create({
     data: { email: 'admin@example.com', passwordHash: await hashPassword('irrelevant'), role: 'admin' },

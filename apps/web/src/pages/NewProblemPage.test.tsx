@@ -80,6 +80,15 @@ describe('NewProblemPage', () => {
     await waitFor(() => expect(sentCompanyId).toBe('c1'));
   });
 
+  it('shows an error when the companies list fails to load', async () => {
+    mockLoggedIn({ id: 'u1', email: 'a@b.com', role: 'individual' });
+    server.use(http.get('/api/companies', () => HttpResponse.json({ error: 'server_error' }, { status: 500 })));
+
+    renderWithProviders(<NewProblemPage />, { route: '/problems/new' });
+
+    expect(await screen.findByText('Não foi possível carregar a lista de empresas.')).toBeInTheDocument();
+  });
+
   it('shows an error when no media is selected', async () => {
     mockLoggedIn({ id: 'u1', email: 'a@b.com', role: 'individual' });
 
