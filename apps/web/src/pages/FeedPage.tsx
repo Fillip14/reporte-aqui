@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { listProblems, toggleVote, type ProblemStatus } from '../api/problems';
+import { listCompanies } from '../api/companies';
 import { useAuth } from '../auth/AuthContext';
 import Button from '../components/Button';
 import Alert from '../components/Alert';
@@ -22,12 +23,14 @@ export default function FeedPage() {
   const [status, setStatus] = useState<ProblemStatus | ''>('');
   const [q, setQ] = useState('');
   const [sort, setSort] = useState<'newest' | 'top'>('newest');
+  const [companyId, setCompanyId] = useState('');
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const companiesQuery = useQuery({ queryKey: ['companies'], queryFn: listCompanies });
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: ['problems', { status, q, sort }],
-    queryFn: () => listProblems({ status: status || undefined, q: q || undefined, sort }),
+    queryKey: ['problems', { status, q, sort, companyId }],
+    queryFn: () => listProblems({ status: status || undefined, q: q || undefined, sort, companyId: companyId || undefined }),
   });
 
   const voteMutation = useMutation({
@@ -51,7 +54,7 @@ export default function FeedPage() {
 
       <form
         onSubmit={(e) => e.preventDefault()}
-        className="mt-6 grid grid-cols-1 gap-4 rounded-xl border border-slate-200 bg-white p-4 sm:grid-cols-3"
+        className="mt-6 grid grid-cols-1 gap-4 rounded-xl border border-slate-200 bg-white p-4 sm:grid-cols-4"
       >
         <div>
           <label htmlFor="search" className={LABEL_CLASSES}>
@@ -92,6 +95,25 @@ export default function FeedPage() {
             <option value="top">Mais votados</option>
           </select>
         </div>
+
+        <div>
+          <label htmlFor="companyId" className={LABEL_CLASSES}>
+            Empresa
+          </label>
+          <select
+            id="companyId"
+            value={companyId}
+            onChange={(e) => setCompanyId(e.target.value)}
+            className={INPUT_CLASSES}
+          >
+            <option value="">Todas</option>
+            {companiesQuery.data?.map((company) => (
+              <option key={company.id} value={company.id}>
+                {company.companyName}
+              </option>
+            ))}
+          </select>
+        </div>
       </form>
 
       <div className="mt-4 space-y-2">
@@ -119,6 +141,7 @@ export default function FeedPage() {
               <div className="mt-1 flex items-center gap-2 text-sm text-slate-500">
                 <StatusBadge status={problem.status} />
                 <span>{problem.voteCount} voto(s)</span>
+                {problem.responsibleCompany && <span>· {problem.responsibleCompany.companyName}</span>}
               </div>
             </div>
             {canVoteOn(problem, user?.id) && (

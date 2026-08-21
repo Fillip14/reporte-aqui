@@ -21,6 +21,7 @@ const sampleProblem = {
   media: [],
   voteCount: 3,
   hasVoted: false,
+  responsibleCompany: null,
 };
 
 describe('FeedPage', () => {
@@ -156,6 +157,44 @@ describe('FeedPage', () => {
     await userEvent.selectOptions(screen.getByLabelText('Ordenar por'), 'top');
 
     await waitFor(() => expect(requestedSort).toBe('top'));
+  });
+
+  it('sends the selected company filter', async () => {
+    mockLoggedOut();
+    let requestedCompanyId: string | null = null;
+    server.use(
+      http.get('/api/companies', () => HttpResponse.json([{ id: 'c1', companyName: 'Empresa X' }])),
+      http.get('/api/problems', ({ request }) => {
+        requestedCompanyId = new URL(request.url).searchParams.get('companyId');
+        return HttpResponse.json({ items: [sampleProblem], page: 1, limit: 20, total: 1 });
+      }),
+    );
+
+    renderWithProviders(<FeedPage />, { route: '/' });
+    await screen.findByText('Buraco na rua');
+    await screen.findByRole('option', { name: 'Empresa X' });
+
+    await userEvent.selectOptions(screen.getByLabelText('Empresa'), 'c1');
+
+    await waitFor(() => expect(requestedCompanyId).toBe('c1'));
+  });
+
+  it('shows the responsible company name on a problem card when present', async () => {
+    mockLoggedOut();
+    server.use(
+      http.get('/api/problems', () =>
+        HttpResponse.json({
+          items: [{ ...sampleProblem, responsibleCompany: { id: 'c1', companyName: 'Empresa X' } }],
+          page: 1,
+          limit: 20,
+          total: 1,
+        }),
+      ),
+    );
+
+    renderWithProviders(<FeedPage />, { route: '/' });
+
+    expect(await screen.findByText(/Empresa X/)).toBeInTheDocument();
   });
 
   it('shows an error message when the problems query fails', async () => {
