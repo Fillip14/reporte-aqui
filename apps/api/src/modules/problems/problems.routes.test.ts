@@ -32,9 +32,10 @@ async function createApprovedCompany(email: string, companyName: string, cnpj: s
     cnpj,
   });
   const userId = res.body.user.id as string;
+  const accessToken = res.body.accessToken as string;
   const profile = await prisma.companyProfile.findUniqueOrThrow({ where: { userId } });
   await prisma.companyProfile.update({ where: { id: profile.id }, data: { verificationStatus: 'approved' } });
-  return profile.id as string;
+  return { companyId: profile.id as string, accessToken };
 }
 
 describe('POST /problems', () => {
@@ -90,7 +91,7 @@ describe('POST /problems', () => {
 
   it('creates a problem with a valid approved responsible company', async () => {
     const { userId, token } = await createUserToken();
-    const companyId = await createApprovedCompany('empresa@example.com', 'Empresa Responsável LTDA', '12312312300011');
+    const { companyId } = await createApprovedCompany('empresa@example.com', 'Empresa Responsável LTDA', '12312312300011');
     const body = { ...validProblemBody(userId), responsibleCompanyId: companyId };
 
     const res = await request(app).post('/problems').set('Authorization', `Bearer ${token}`).send(body);
@@ -121,6 +122,23 @@ describe('POST /problems', () => {
       where: { userId: pendingRes.body.user.id },
     });
     const body = { ...validProblemBody(userId), responsibleCompanyId: pendingProfile.id };
+
+    const res = await request(app).post('/problems').set('Authorization', `Bearer ${token}`).send(body);
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toBe('company_not_found');
+  });
+
+  it('rejects a responsible company whose account has been deleted', async () => {
+    const { userId, token } = await createUserToken();
+    const { companyId, accessToken: companyToken } = await createApprovedCompany(
+      'deletada@example.com',
+      'Empresa Deletada LTDA',
+      '11122233300055',
+    );
+    await request(app).delete('/me').set('Authorization', `Bearer ${companyToken}`);
+
+    const body = { ...validProblemBody(userId), responsibleCompanyId: companyId };
 
     const res = await request(app).post('/problems').set('Authorization', `Bearer ${token}`).send(body);
 
@@ -214,7 +232,7 @@ describe('GET /problems', () => {
 
   it('filters by responsible company', async () => {
     const { userId, token } = await createUserToken();
-    const companyId = await createApprovedCompany('empresa2@example.com', 'Outra Empresa LTDA', '78978978900033');
+    const { companyId } = await createApprovedCompany('empresa2@example.com', 'Outra Empresa LTDA', '78978978900033');
     await createProblem(token, userId, { responsibleCompanyId: companyId });
     await createProblem(token, userId, { title: 'Problema sem empresa na via' });
 
@@ -268,7 +286,7 @@ describe('GET /problems/:id', () => {
 
   it('includes the responsible company when set', async () => {
     const { userId, token } = await createUserToken();
-    const companyId = await createApprovedCompany('empresa3@example.com', 'Terceira Empresa LTDA', '65465465400044');
+    const { companyId } = await createApprovedCompany('empresa3@example.com', 'Terceira Empresa LTDA', '65465465400044');
     const problem = await createProblem(token, userId, { responsibleCompanyId: companyId });
 
     const res = await request(app).get(`/problems/${problem.id}`);

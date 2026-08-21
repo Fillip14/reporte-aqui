@@ -23,8 +23,13 @@ export async function createProblem(authorId: string, input: CreateProblemInput)
   }
 
   if (input.responsibleCompanyId) {
-    const company = await prisma.companyProfile.findUnique({ where: { id: input.responsibleCompanyId } });
-    if (!company || company.verificationStatus !== 'approved') throw new CompanyNotFoundError();
+    const company = await prisma.companyProfile.findUnique({
+      where: { id: input.responsibleCompanyId },
+      include: { user: { select: { status: true } } },
+    });
+    if (!company || company.verificationStatus !== 'approved' || company.user.status !== 'active') {
+      throw new CompanyNotFoundError();
+    }
   }
 
   return prisma.problem.create({
