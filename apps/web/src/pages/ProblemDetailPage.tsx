@@ -97,6 +97,9 @@ export default function ProblemDetailPage() {
         </div>
         <p className="mt-3 whitespace-pre-wrap text-slate-700">{problem.description}</p>
         <p className="mt-3 text-sm text-slate-500">Local: {problem.location}</p>
+        {problem.responsibleCompany && (
+          <p className="text-sm text-slate-500">Empresa responsável: {problem.responsibleCompany.companyName}</p>
+        )}
         <p className="text-sm text-slate-500">{problem.voteCount} voto(s)</p>
 
         {problem.media.length > 0 && (

@@ -23,6 +23,7 @@ function problem(overrides: Record<string, unknown> = {}) {
     voteCount: 3,
     hasVoted: false,
     rating: null,
+    responsibleCompany: null,
     ...overrides,
   };
 }
@@ -51,6 +52,20 @@ describe('ProblemDetailPage', () => {
     expect(screen.getByRole('button', { name: 'Votar' })).toBeInTheDocument();
     expect(screen.getByText('Propor resolução')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Cancelar' })).not.toBeInTheDocument();
+  });
+
+  it('shows the responsible company when present', async () => {
+    mockLoggedIn({ id: 'author-1', email: 'a@b.com', role: 'individual' });
+    server.use(
+      http.get('/api/problems/abc', () =>
+        HttpResponse.json(problem({ responsibleCompany: { id: 'c1', companyName: 'Empresa X' } })),
+      ),
+    );
+
+    renderWithProviders(<ProblemDetailPage />, { route: '/problems/abc', path: '/problems/:id' });
+
+    await screen.findByText('Buraco na rua');
+    expect(screen.getByText('Empresa responsável: Empresa X')).toBeInTheDocument();
   });
 
   it('submits a resolution proposal by uploading a file first', async () => {
