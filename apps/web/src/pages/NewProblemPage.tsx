@@ -1,8 +1,9 @@
 import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { createProblem } from '../api/problems';
 import { uploadMedia } from '../api/media';
+import { listCompanies } from '../api/companies';
 import Button from '../components/Button';
 import Alert from '../components/Alert';
 import { LABEL_CLASSES, INPUT_CLASSES } from '../lib/formClasses';
@@ -16,11 +17,19 @@ export default function NewProblemPage() {
   const [location, setLocation] = useState('');
   const [files, setFiles] = useState<File[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [responsibleCompanyId, setResponsibleCompanyId] = useState('');
+  const companiesQuery = useQuery({ queryKey: ['companies'], queryFn: listCompanies });
 
   const mutation = useMutation({
     mutationFn: async () => {
       const media = await Promise.all(files.map((file) => uploadMedia(file)));
-      return createProblem({ title, description, location, media });
+      return createProblem({
+        title,
+        description,
+        location,
+        media,
+        responsibleCompanyId: responsibleCompanyId || undefined,
+      });
     },
     onSuccess: (problem) => navigate(`/problems/${problem.id}`),
     onError: () => setError(CREATE_ERROR_MESSAGE),
@@ -88,6 +97,25 @@ export default function NewProblemPage() {
             onChange={(e) => setLocation(e.target.value)}
             className={INPUT_CLASSES}
           />
+        </div>
+
+        <div>
+          <label htmlFor="responsibleCompanyId" className={LABEL_CLASSES}>
+            Empresa responsável (opcional)
+          </label>
+          <select
+            id="responsibleCompanyId"
+            value={responsibleCompanyId}
+            onChange={(e) => setResponsibleCompanyId(e.target.value)}
+            className={INPUT_CLASSES}
+          >
+            <option value="">Nenhuma</option>
+            {companiesQuery.data?.map((company) => (
+              <option key={company.id} value={company.id}>
+                {company.companyName}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div>

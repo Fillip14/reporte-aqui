@@ -41,6 +41,45 @@ describe('NewProblemPage', () => {
     await waitFor(() => expect(createCalled).toBe(true));
   });
 
+  it('lists approved companies in the responsible company select', async () => {
+    mockLoggedIn({ id: 'u1', email: 'a@b.com', role: 'individual' });
+    server.use(http.get('/api/companies', () => HttpResponse.json([{ id: 'c1', companyName: 'Empresa X' }])));
+
+    renderWithProviders(<NewProblemPage />, { route: '/problems/new' });
+
+    expect(await screen.findByRole('option', { name: 'Empresa X' })).toBeInTheDocument();
+  });
+
+  it('sends the selected responsible company when creating a problem', async () => {
+    mockLoggedIn({ id: 'u1', email: 'a@b.com', role: 'individual' });
+    let sentCompanyId: string | undefined;
+    server.use(
+      http.get('/api/companies', () => HttpResponse.json([{ id: 'c1', companyName: 'Empresa X' }])),
+      http.post('/api/media/upload-url', () =>
+        HttpResponse.json({ objectKey: 'u1/a.jpg', uploadUrl: 'https://r2.example.com/u1/a.jpg' }),
+      ),
+      http.put('https://r2.example.com/u1/a.jpg', () => new HttpResponse(null, { status: 200 })),
+      http.post('/api/problems', async ({ request }) => {
+        const body = (await request.json()) as { responsibleCompanyId?: string };
+        sentCompanyId = body.responsibleCompanyId;
+        return HttpResponse.json({ id: 'new-id', status: 'open' }, { status: 201 });
+      }),
+    );
+
+    renderWithProviders(<NewProblemPage />, { route: '/problems/new' });
+
+    await screen.findByRole('option', { name: 'Empresa X' });
+    await userEvent.type(screen.getByLabelText('Título'), 'Buraco na rua principal');
+    await userEvent.type(screen.getByLabelText('Descrição'), 'd'.repeat(20));
+    await userEvent.type(screen.getByLabelText('Localização'), 'Rua X, 100');
+    await userEvent.selectOptions(screen.getByLabelText('Empresa responsável (opcional)'), 'c1');
+    const file = new File(['x'], 'photo.jpg', { type: 'image/jpeg' });
+    await userEvent.upload(screen.getByLabelText('Fotos/vídeos (1 a 5 arquivos)'), file);
+    await userEvent.click(screen.getByRole('button', { name: 'Enviar' }));
+
+    await waitFor(() => expect(sentCompanyId).toBe('c1'));
+  });
+
   it('shows an error when no media is selected', async () => {
     mockLoggedIn({ id: 'u1', email: 'a@b.com', role: 'individual' });
 
