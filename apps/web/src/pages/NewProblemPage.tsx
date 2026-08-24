@@ -9,16 +9,38 @@ import Alert from '../components/Alert';
 import { LABEL_CLASSES, INPUT_CLASSES } from '../lib/formClasses';
 
 const CREATE_ERROR_MESSAGE = 'Não foi possível criar o problema. Tente novamente.';
+const CEP_NOT_FOUND_MESSAGE = 'CEP não encontrado.';
+
+async function lookupCep(cep: string): Promise<string | null> {
+  const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+  const data = await response.json();
+  if (data.erro) return null;
+  return `${data.logradouro}, ${data.bairro}, ${data.localidade} - ${data.uf}`;
+}
 
 export default function NewProblemPage() {
   const navigate = useNavigate();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [location, setLocation] = useState('');
+  const [cep, setCep] = useState('');
+  const [cepError, setCepError] = useState<string | null>(null);
   const [files, setFiles] = useState<File[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [responsibleCompanyId, setResponsibleCompanyId] = useState('');
   const companiesQuery = useQuery({ queryKey: ['companies'], queryFn: listCompanies });
+
+  async function handleCepBlur() {
+    const digits = cep.replace(/\D/g, '');
+    if (digits.length !== 8) return;
+    setCepError(null);
+    const address = await lookupCep(digits);
+    if (address) {
+      setLocation(address);
+    } else {
+      setCepError(CEP_NOT_FOUND_MESSAGE);
+    }
+  }
 
   const mutation = useMutation({
     mutationFn: async () => {
@@ -82,6 +104,20 @@ export default function NewProblemPage() {
             className={INPUT_CLASSES}
             rows={4}
           />
+        </div>
+
+        <div>
+          <label htmlFor="cep" className={LABEL_CLASSES}>
+            CEP (opcional)
+          </label>
+          <input
+            id="cep"
+            value={cep}
+            onChange={(e) => setCep(e.target.value)}
+            onBlur={handleCepBlur}
+            className={INPUT_CLASSES}
+          />
+          {cepError && <p className="mt-1 text-sm text-red-600">{cepError}</p>}
         </div>
 
         <div>

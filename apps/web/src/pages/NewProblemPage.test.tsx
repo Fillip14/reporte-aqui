@@ -89,6 +89,41 @@ describe('NewProblemPage', () => {
     expect(await screen.findByText('Não foi possível carregar a lista de empresas.')).toBeInTheDocument();
   });
 
+  it('autofills location from CEP lookup', async () => {
+    mockLoggedIn({ id: 'u1', email: 'a@b.com', role: 'individual' });
+    server.use(
+      http.get('https://viacep.com.br/ws/:cep/json/', () =>
+        HttpResponse.json({
+          logradouro: 'Rua das Flores',
+          bairro: 'Centro',
+          localidade: 'São Paulo',
+          uf: 'SP',
+        }),
+      ),
+    );
+
+    renderWithProviders(<NewProblemPage />, { route: '/problems/new' });
+
+    await userEvent.type(screen.getByLabelText('CEP (opcional)'), '01001000');
+    await userEvent.tab();
+
+    await waitFor(() =>
+      expect(screen.getByLabelText('Localização')).toHaveValue('Rua das Flores, Centro, São Paulo - SP'),
+    );
+  });
+
+  it('shows an error when the CEP is not found', async () => {
+    mockLoggedIn({ id: 'u1', email: 'a@b.com', role: 'individual' });
+    server.use(http.get('https://viacep.com.br/ws/:cep/json/', () => HttpResponse.json({ erro: true })));
+
+    renderWithProviders(<NewProblemPage />, { route: '/problems/new' });
+
+    await userEvent.type(screen.getByLabelText('CEP (opcional)'), '00000000');
+    await userEvent.tab();
+
+    expect(await screen.findByText('CEP não encontrado.')).toBeInTheDocument();
+  });
+
   it('shows an error when no media is selected', async () => {
     mockLoggedIn({ id: 'u1', email: 'a@b.com', role: 'individual' });
 
